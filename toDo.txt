@@ -1,5 +1,15 @@
-Project 1:
-
 Converting GTC to PLINK files
+- Do I need the iaap-cli to convert IDats to GTCs?
+  - I am struggling with this: /opt/exp_soft/bioinf/bin/iaap-cli : permission denied
+  - I have put module load bioinf at bottom of my .bashrc file
+- In general once I have to GTCs, I am not exactly sure how to read them. 
 
-Projects 2:
+- With the Plink generation: I have found a great resource: https://zzz.bwh.harvard.edu/plink/dist/plink-doc-1.05.pdf
+  - I think I am figuring out how it works, but may ask more questions.
+  
+  
+Understanding the iDats
+- Wondering if there is a mistake with idat_hash on line 119. It is never declared. 
+  - It could be getIdatHash()?
+  - My code runs without errors and returns PID and Fs. Not sure what they are.
+  - 
