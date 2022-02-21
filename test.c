@@ -13,7 +13,7 @@ int main()
 }
 
 
-/*int att(){
+int att(){
   //I expect this part to chnge
   int numIndividuals = 5;
   int numRows = 10;
@@ -81,7 +81,6 @@ int main()
   return 0;
 }
 
-*/
 int mall(){
   int numElements = 5;
   uint8_t j = 42;
