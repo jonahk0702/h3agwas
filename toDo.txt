@@ -1,3 +1,16 @@
+**03 March ***
+GTC to Plink
+- resolved permission errors
+- Managed to create a GTC from IDats.
+- To make sure, it asks for an Idat folder and not an Idat File. I assumed this meant take the two files with same names just Red and Grn endinds and put them in thier own folder and use that? Seemed to work.
+- Now that I have a GTC, I need to read it.
+- Whenever I run a command, I just run it ie python read.py. I dont worry about scheduling jobs? Is that okay?
+- Is a GTC file binary. Will I be able to write code to read it, or is the pre built code I should use?
+
+
+
+
+**22 Feb **
 Converting GTC to PLINK files
 - Do I need the iaap-cli to convert IDats to GTCs?
   - I am struggling to run this when I call iaap-cli i get: /opt/exp_soft/bioinf/bin/iaap-cli : permission denied
