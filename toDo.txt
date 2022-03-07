@@ -2,10 +2,10 @@
 GTC to Plink
 - resolved permission errors
 - Managed to create a GTC from IDats.
-- To make sure, it asks for an Idat folder and not an Idat File. I assumed this meant take the two files with same names just Red and Grn endinds and put them in thier own folder and use that? Seemed to work.
+- To make sure, it asks for an Idat folder and not an Idat File. I assumed this meant take the two files with same names just Red and Grn endinds and put them in thier own folder and use that? Seemed to work. As long as there are pairs of folders, its all good. 
 - Now that I have a GTC, I need to read it.
-- Whenever I run a command, I just run it ie python read.py. I dont worry about scheduling jobs? Is that okay?
-- Is a GTC file binary. Will I be able to write code to read it, or is the pre built code I should use?
+- Whenever I run a command, I just run it ie python read.py. I dont worry about scheduling jobs? Is that okay? Potentially. Scott did give another command.
+- Is a GTC file binary. Will I be able to write code to read it, or is the pre built code I should use? No.
 
 
 
