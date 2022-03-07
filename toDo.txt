@@ -1,3 +1,10 @@
+**10 Match
+- Want to read the GTCs. Options:
+  https://github.com/Illumina/BeadArrayFiles/blob/develop/module/LocusAggregate.py - On open Source tool that reads GTCs
+  YES! This works!
+  Got the function and class that does the reading! GenotypeClass(object)
+
+
 **03 March ***
 GTC to Plink
 - resolved permission errors
