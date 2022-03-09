@@ -3,6 +3,7 @@
   https://github.com/Illumina/BeadArrayFiles/blob/develop/module/LocusAggregate.py - On open Source tool that reads GTCs
   YES! This works!
   Got the function and class that does the reading! GenotypeClass(object)
+ - There is a way to take the report.txt to .lgen? then to PED through a plink command? is that desireable? Or do i do it manually?
 
 
 **03 March ***
