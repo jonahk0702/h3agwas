@@ -1,9 +1,16 @@
 **10 Match
 - Want to read the GTCs. Options:
-  https://github.com/Illumina/BeadArrayFiles/blob/develop/module/LocusAggregate.py - On open Source tool that reads GTCs
+  https://github.com/Illumina/BeadArrayFiles/blob/develop/examples/gtc_final_report.py - On open Source tool that reads GTCs
   YES! This works!
+  This is not quite the right file. Its in example and generate report.
   Got the function and class that does the reading! GenotypeClass(object)
  - There is a way to take the report.txt to .lgen? then to PED through a plink command? is that desireable? Or do i do it manually?
+ - Here is another interesting idea:
+ https://github.com/nicolazzie/SNPchimpRepo/blob/master/README.md
+ There is a program that converts row format to Plink Files... Are we row? And is it okay I dont really understand how Plink works
+ But this program takes in a final report and converts it to 
+- Need to ask if this is a roundabout and ineffecient way of doing this or if its standard?
+  This creates a PED and a MAP file... Is that all
 
 
 **03 March ***
