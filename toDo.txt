@@ -11,6 +11,7 @@
  But this program takes in a final report and converts it to 
 - Need to ask if this is a roundabout and ineffecient way of doing this or if its standard?
   This creates a PED and a MAP file... Is that all
+- Interesting file: https://www.biostars.org/p/135156/
 
 
 **03 March ***
