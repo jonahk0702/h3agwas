@@ -1,4 +1,17 @@
-**10 Match
+** 17 March **
+- Still want to read GTCs
+- Here the issue is that all the way I have found use Python libraries. I need a c library to decode it...
+- Idea 1: This seems very promosing. It is the base of that python library. I just need to recode it in C.
+- Interesting link
+  https://f1000research.com/articles/2-264/v1
+    This is Illuminaio, that open source IDAT reader.
+  https://github.com/HenrikBengtsson/illuminaio
+    This seems to be more PLINk orientated
+- I have been writing this module in C. All the support files look managable.
+
+
+
+**10 March
 - Want to read the GTCs. Options:
   https://github.com/Illumina/BeadArrayFiles/blob/develop/examples/gtc_final_report.py - On open Source tool that reads GTCs
   YES! This works!
