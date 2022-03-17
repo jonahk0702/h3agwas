@@ -2,6 +2,7 @@
 - Still want to read GTCs
 - Here the issue is that all the way I have found use Python libraries. I need a c library to decode it...
 - Idea 1: This seems very promosing. It is the base of that python library. I just need to recode it in C.
+  https://github.com/Illumina/BeadArrayFiles
 - Interesting link
   https://f1000research.com/articles/2-264/v1
     This is Illuminaio, that open source IDAT reader.
