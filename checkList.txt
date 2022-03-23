@@ -1,3 +1,14 @@
+**24 March **
+- Busy reading from GTCs
+  I have been struggling with memory allocation. My anti-virus keeps deleting my build files.
+- The the creating of objects and functions seem to be going well.
+  Memory allocation is taking some getting used to. 
+- I am combining two files from Illumina- The BeadPoolManifest file and the BeadArrayUtility files.
+  The other files reference functions from these more for the most complex functions
+- Can be a lot more efficient, and need to double check data type sizes.
+- Unicodes are still pretty worrying.
+  
+  
 ** 17 March **
 - Still want to read GTCs
 - Here the issue is that all the way I have found use Python libraries. I need a c library to decode it...
