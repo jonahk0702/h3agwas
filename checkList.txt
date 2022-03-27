@@ -1,3 +1,8 @@
+**31 March**
+  - Going much better
+  - Issue on python code struct.unpack
+
+
 **24 March **
 - Busy reading from GTCs
   I have been struggling with memory allocation. My anti-virus keeps deleting my build files.
