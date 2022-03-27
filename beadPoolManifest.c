@@ -37,6 +37,7 @@ int __parse_file(char* filename);
 
 
 int main(){
+    printf("Starting");
 	char names[25][10];
 	char snps [25][10];
 	char chroms [25][10];
@@ -81,36 +82,33 @@ int main(){
 // 	return value;
 // }
 
-//This file is bad...
-// int __parse_file(char* filename){
-// 	char buffer[3]; // I want three bytes, not bits.  I think this is correct, but not sure.
+int __parse_file(char* filename){
+    char version, buffer[3];
+    FILE *ptr;
+    ptr = fopen(filename,"rb");
+    if (ptr == NULL) {
+        printf("Cannot find filename.");
+        exit(-9);
+    }
+    int err = fread(buffer,sizeof(buffer),1,ptr);
+    if (err != 3) {
+      printf("Unable to read Magic Number: <%d>\n",err);
+      exit(-10);
+    }
+    if (strncmp(buffer,"BPM",3) != 0) {
+      printf("Given file is not BPM <%d>\n",err);
+      exit(-11);
+    }
+    int errVer = fread(&version,1,1,ptr);
+        if(version != '1'){
+        printf("Wrong BPM version\n"); // not a BPM 1 file                                                                                                                                               
+        exit(-12);
+    }
 
-//  	FILE *ptr;
+    return 1;
+ }
 
-// 	ptr = fopen(filename,"rb");
-
-// 	fread(buffer,sizeof(buffer),1,ptr);
-
-// 	char header[3];
-// 	header[1] = buffer[1];
-// //	header = decode_code_point(buffer);Needs to be in, but error. Decode to utf-8
-
-// 	if(strlen(header) != 3 || header != "BPM"){
-// 		printf("Error here.\n");//Not a BPM file
-// 	}else{
-// 		char version = '1';//read_char(filename);
-// 		if(version != '1'){
-// 		printf("Error here. Wrong BPM version\n");//Not a BPM file
-
-// 		}else{
-// 			//Proceed.
-// 		}
-// 		//Here
-			
-// 	}
-// 	return 1;
-// }
-
+ 
 //This method is bad.
  char read_char(char* filename){
  	// FILE* in_file = fopen("test.txt", "rb");
