@@ -1,12 +1,15 @@
 **31 March**
   - Going much better
+  - Need help with Githup and unpacking.
+  - Cannot oush to github because ofBPM
   - Issue on python code struct.unpack
     Interestingly, it looks like little endian comes up here.
+    This is my biggest issue.
   - If I have already read some data from a file Ptr, can I pass that ptr to another function and carry on reading from where I left off?
   - I am able to use numbers such as 0x80 -> tested it
   - In terms of decode UTF 8, I get 'B' insead of '2'
     Worked on a radom test but not before or after? I was actyally ttesting 0x80 and correct Verision Byte was read
-
+  - Figured out emacs commands. 
 
 **24 March **
 - Busy reading from GTCs
