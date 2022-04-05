@@ -1,3 +1,12 @@
+**7 April**
+  - I spent quite a bit of time struggling with the version. They expect a 1 and I just was not getting that.
+    After trying many different ideas, ie chaging num bytes and num bytes of previous data, I think I got it
+    For some reason, its only a 1 when read in as a char but passed to an int. 
+  - This is a good lesson in general, in Python its often less explicit if x == '1' or x == 1. Watch the datatypes
+- I am still struggling with Git. It just was not removing BPM. After some time I gave up as it was wasting time
+- Getting a seg fault. Not exactly sure why
+  
+
 **31 March**
   - Going much better
   - Need help with Githup and unpacking.
