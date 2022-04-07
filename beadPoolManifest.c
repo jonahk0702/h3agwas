@@ -137,27 +137,66 @@ int read_int(FILE* ptr){
   // return struct.unpack("<i", handle.read(4))[0]
  }
 
-char* read_string(FILE* ptr){//Getting sife of Data is NB to properly declare sife of storing varibles
+char* read_string(FILE* ptr){//Getting size of Data is NB to properly declare size of storing varibles
+  char readIn;
+  int readAttempt;
+  int read;
 
   char* a = (char*)malloc(4);
   *a = 'B';
+  char result[30];
   int total_length = 0;
   int  partial_length = read_byte(ptr);
+  printf("Partial Len: %i\n\n", partial_length);
   int num_bytes = 0;
   while(partial_length & 0x80 > 0){
     total_length += (partial_length & 0x7F) << (7 * num_bytes);
-    //  partial_length = ord(struct.unpack("c", handle.read(1))[0])
+    readAttempt = fread(&readIn, sizeof(char), 1, ptr);
+    if(readAttempt != 1){
+      printf("Error with reading String");
+      exit(-15);
+    }
+    read = (int)(readIn);
+    partial_length = read; //ord(struct.unpack("c", handle.read(1))[0])
     num_bytes += 1;
-  }
 
+   }
   total_length += partial_length << (7 * num_bytes);
+  printf("Got this far. Whats is totalLen: %i\n\n", total_length);
+
+  readAttempt = fread(&result, total_length, 1, ptr);
+
+  if(readAttempt != 1){
+    printf("Error reading in string");
+    exit(-12);
+  }
+  if(strlen(result) < total_length){
+    printf("Unable to read the entire string");
+    exit(-12);
+  printf("Made it past string. Read: %s\n\n", result);
   //   result = handle.read(total_length);
   //   reselt = result.decode(utf8)
-//    if len(result) < total_length:
+  //    if len(result) < total_length:
   //       raise Exception("Failed to read complete string")
-           // else:
-      //        return result
+  // else:
+  //        return result
 
   return a;
 
 }
+
+	  
+
+long read_int(FILE* ptr){
+  long* num;
+  int success = fread(num, 4, 1, ptr);
+  if(success != 1){
+    printf("int was read unsuccessfully:%i \n\n", success);
+    exit(-14);
+  }
+
+  return *num;
+
+  // return struct.unpack("<i", handle.read(4))[0]
+}
+
