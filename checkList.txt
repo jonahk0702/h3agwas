@@ -1,3 +1,10 @@
+**14 April**
+  - Finally got my GitHub to work! Spent way too long, but happy its done
+    Going forward, it will be good to keep large BPM and EGT files seperately - this will avoid Github issues, sharing data issues and is how these scripts will be used.
+  - I am having some issues with reading String
+    This is a good excuse to clone Illumina's Python scripts and start testing each function against my own.
+    I have done this.
+
 **7 April**
   - I spent quite a bit of time struggling with the version. They expect a 1 and I just was not getting that.
     After trying many different ideas, ie chaging num bytes and num bytes of previous data, I think I got it
