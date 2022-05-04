@@ -1,3 +1,13 @@
+**05 May**
+  - I have mainly been working on the python script. I want to be able to debug it and run seperate parts individually in order to test against my c code and possibly unit test them both.
+   - I chose to get into this here as I am getting wierd results in C. It could be right, I just dont know. SO want to be able to see. 
+  - But it seems to be working. I understand my BeadPoolManifest script is supposed to return and object.
+    This one script does most of the work (and takes most of the time) for the entire python library.
+  - From their I can either format the data for a final report (Which the Python script does) or go for a plink file (which is what I want to do)
+  - I have coded a script that saved intermediate values in a sort of Debug-Object and will use it - can also be the point of the the Unit testing.
+  - Note to self - Dont try print out intermediate values - they are really really really long...
+  - Currently working on adding a new attribute about version name to debug it.
+    
 **28 April**
   - Getting into unit testing.
   Have installed Unity and been playing with their examples. 
