@@ -35,8 +35,8 @@ int __parse_file(char filename[40]);
 //atrributes. The sizes of these still needs to be calculated
 //Would rather store them all on the heap for some flexibility
 int main(){
-  printf("Starting.\n");
-  int t =  __parse_file("H3Africa_2017_20021485_A3.bpm");
+  printf("Starting...\n");
+  int t =  __parse_file("/home/jonahk/H3Africa.bpm");
   //  char* j = read_ushort('o');
   //  free(j);
   char names[25][10];
@@ -104,7 +104,6 @@ int __parse_file(char filename[40]){
   }
   versionInt = (int)(versionChar);
   
-  printf("Version Int is: %i\n\n", versionInt);
  
   if(versionInt != 1){
     printf("Wrong BPM version\n"); // not a BPM 1 file
@@ -123,8 +122,6 @@ int __parse_file(char filename[40]){
   if(readIntVer & version_flag == version_flag){
     readIntVer = readIntVer ^ version_flag;
   }
-
-  printf("Bit manipulated version: %i\n\n",readIntVer );
   
   if(readIntVer > 5 || readIntVer < 3){
     printf("Unsupported BPM version");
@@ -172,16 +169,21 @@ long read_int(FILE* ptr){
 }
 
 char* read_string(FILE* ptr){//Getting size of Data is NB to properly declare size of storing varibles
+  int total_length = 0;
+  int  partial_length = read_byte(ptr);
+
+  
   char readIn;
   int readAttempt; 
   int read;
-
+  
+  printf("Partion Len:%i\n\n", partial_length);
   char* a = (char*)malloc(4);
   *a = 'B';
-  char result[30];
-  int total_length = 0;
-  int  partial_length = read_byte(ptr);
-  printf("Partial Len: %i\n\n", partial_length);
+  char result[35];
+  
+    
+  // printf("Partial Len: %i\n\n", partial_length);
   int num_bytes = 0;
   while(partial_length & 0x80 > 0){
     total_length += (partial_length & 0x7F) << (7 * num_bytes);
@@ -190,13 +192,14 @@ char* read_string(FILE* ptr){//Getting size of Data is NB to properly declare si
       printf("Error with reading String");
       exit(-15);
     }
-    read = (int)(readIn);
+    read = (readIn) & 0x80;
+    printf("reaadIN:%c\n\n", read);
     partial_length = read; //ord(struct.unpack("c", handle.read(1))[0])
+    //    printf("Partial Read Len:%d\n\n", partial_length);
     num_bytes += 1;
 
    }
   total_length += partial_length << (7 * num_bytes);
-  printf("Got this far. Whats is totalLen: %i\n\n", total_length);
   total_length -=1;
   readAttempt = fread(&result, total_length, 1, ptr);
 
@@ -204,7 +207,10 @@ char* read_string(FILE* ptr){//Getting size of Data is NB to properly declare si
     printf("Error reading in string");
     exit(-12);
   }
-  printf("Made it past string. Read: %s\n\n", result);
+  //  printf("string Len:%d\n", strlen(result));
+  //  printf("desired len:%d\n", total_length);
+  // printf("Made it past string. Read: %s\n\n", result);
+  //  printf("result:%s\n\n", result);
   if(strlen(result) < total_length){
     printf("Unable to read the entire string");
     exit(-12);
