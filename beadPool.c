@@ -192,10 +192,9 @@ char* read_string(FILE* ptr){//Getting size of Data is NB to properly declare si
       printf("Error with reading String");
       exit(-15);
     }
-    read = (readIn) & 0x80;
-    printf("reaadIN:%c\n\n", read);
-    partial_length = read; //ord(struct.unpack("c", handle.read(1))[0])
-    //    printf("Partial Read Len:%d\n\n", partial_length);
+    read = (int)(readIn);
+    partial_length = read;
+ 
     num_bytes += 1;
 
    }
@@ -207,22 +206,40 @@ char* read_string(FILE* ptr){//Getting size of Data is NB to properly declare si
     printf("Error reading in string");
     exit(-12);
   }
-  //  printf("string Len:%d\n", strlen(result));
-  //  printf("desired len:%d\n", total_length);
-  // printf("Made it past string. Read: %s\n\n", result);
-  //  printf("result:%s\n\n", result);
+
+  printf("result:%s\n\n", result);
   if(strlen(result) < total_length){
     printf("Unable to read the entire string");
     exit(-12);
   }
 
-  //   result = handle.read(total_length);
-  //   reselt = result.decode(utf8)
-  //    if len(result) < total_length:
-  //       raise Exception("Failed to read complete string")
-  // else:
-  //        return result
-
   return a;
 
 }
+
+//The Output of this functions is: result:3Africa_2017_20021485_A3.bpm▒\n0027630314:0027630314:
+//The desired output is H3Africa_2017_20021485_A3.bpm
+
+
+//The Python Code for Read_Int
+/*
+def read_string(handle):
+    total_length = 0
+    partial_length = read_byte(handle)
+    num_bytes = 0
+    while partial_length & 0x80 > 0:
+        total_length += (partial_length & 0x7F) << (7 * num_bytes)
+        partial_length = ord(struct.unpack("c", handle.read(1))[0])
+        num_bytes += 1
+    total_length += partial_length << (7 * num_bytes)
+    result = handle.read(total_length)
+    result = result.decode("utf-8")
+    if len(result) < total_length:
+        raise Exception("Failed to read complete string")
+    else:
+        return result
+
+
+*/
+
+
