@@ -1,3 +1,17 @@
+**26 May**
+  - I have finally got the C to work but not sure its correct
+    We spoke about the while loop not running most of the time.
+    Well that While loop actually reads in the first char of the Manifest_name and we move past it. Thus we miss it later
+    By removing the while, it all works well.
+  - The other error I could not solve was actually solved when Scott and JT were arguing about '0' vs '/0'. I did not have the end charactor and the array simply read data that was not allocated to it. BTWs '\0' works and '0' does not.
+  - Finally, onwards and upwards!
+
+
+**12 May**
+  - I started testing the C code against the Python code and I found my first error. Its in the beginning when reading in and my script seems to be reading in way too many bytes.  
+  - Its my read_string function which just is not working. 
+  - I am sure its just a bug and sure I can find it.
+
 **05 May**
   - I have mainly been working on the python script. I want to be able to debug it and run seperate parts individually in order to test against my c code and possibly unit test them both.
    - I chose to get into this here as I am getting wierd results in C. It could be right, I just dont know. SO want to be able to see. 
