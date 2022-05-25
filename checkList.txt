@@ -5,7 +5,7 @@
     By removing the while, it all works well.
   - The other error I could not solve was actually solved when Scott and JT were arguing about '0' vs '/0'. I did not have the end charactor and the array simply read data that was not allocated to it. BTWs '\0' works and '0' does not.
   - Finally, onwards and upwards!
-
+  - Now I am just fighting with parse Int function. My theory is little bas big endian.
 
 **12 May**
   - I started testing the C code against the Python code and I found my first error. Its in the beginning when reading in and my script seems to be reading in way too many bytes.  
