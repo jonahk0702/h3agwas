@@ -72,11 +72,11 @@ char* read_string(FILE* ptr){//Getting size of Data is NB to properly declare si
   int total_length = 0;
   int  partial_length = read_byte(ptr);
   int num_bytes = 0;
-  
   int read;
   char readIn;
   int readAttempt; 
 
+  fprintf(stderr, "partial length %d", partial_length);
   int partHolder = partial_length;
 
   //Would rather it were on the stack like this, but does not work. Seg Fault
@@ -98,6 +98,7 @@ char* read_string(FILE* ptr){//Getting size of Data is NB to properly declare si
     num_bytes += 1;
   }
   total_length += partial_length << (7 * num_bytes);
+  fprintf(stderr, "total length %d", total_length);
   readAttempt = fread(result, total_length, 1, ptr);
   if(readAttempt != 1){
     printf("Error reading in string");
@@ -120,14 +121,14 @@ int read_byte(FILE* ptr);
 char* read_string(FILE* ptr);
 char read_char(char* handle);
 int decode_code_point(char **s);
-int __parse_file(char filename[40]);
+int __parse_file(char* filename);
 
 
 //atrributes. The sizes of these still needs to be calculated
 //Would rather store them all on the heap for some flexibility
 int main(){
   printf("Starting...\n");
-  int t =  __parse_file("/home/jonahk/H3Africa.bpm");
+  int t =  __parse_file("/dataD/cancer/iaap/setting_files/H3Africa_2017_20021485_A3.bpm");
   char names[25][10];
   char snps [25][10];
   char chroms [25][10];
@@ -154,7 +155,7 @@ int main(){
 //Actually declaring the functions
 //I think these should be put into anther file and imported. Just figuring out the syntax
 
-int __parse_file(char filename[40]){
+int __parse_file(char* filename){
   char buffer[3];
 
   char* control_config;
@@ -163,6 +164,7 @@ int __parse_file(char filename[40]){
   char versionChar;
   int versionInt;
   int readIntVer;
+  char* manifest;
   
   ptr = fopen(filename,"rb");
   if (ptr == NULL) {
@@ -187,6 +189,7 @@ int __parse_file(char filename[40]){
     printf("Unable to read versionn: %d\n", readAttempt);
     exit(-14);
   }
+  fprintf(stderr, "versionChar %c\n", versionChar);
   versionInt = (int)(versionChar);
   
  
@@ -194,14 +197,15 @@ int __parse_file(char filename[40]){
     printf("Wrong BPM version\n"); // not a BPM 1 file
     exit(-12);
   }
+  fprintf(stderr, "versionInt %d\n", versionInt);
 
 
-  readAttempt = fread(&readIntVer, sizeof(readIntVer), 1, ptr);
+  readAttempt = read_int(ptr);
   if(readAttempt != 1){
     printf("Error reading in int: %d\n", readAttempt);
     exit(-12);
   }
-  
+  fprintf(stderr, "readIntVer %d\n", readIntVer);
 
   
   if(readIntVer & version_flag == version_flag){
@@ -212,7 +216,7 @@ int __parse_file(char filename[40]){
     printf("Unsupported BPM version");
     exit(-13);
   }
-
+   manifest  = read_string(ptr);
   if(readIntVer > 1){
      control_config = read_string(ptr);
   }
