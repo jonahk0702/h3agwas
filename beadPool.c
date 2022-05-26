@@ -50,33 +50,20 @@ uint32_t read_int(FILE* ptr){
   //An attempt to make it little endian.
 
 
-  //Fance Internet Code didnt work :(
+  //Fancy Internet Code didnt work :(
   /*   char bytes[4];
    int sum = 0;
    fread(bytes, 4, 1,ptr);
    
    sum = bytes[0]<<24 | (bytes[1]<<16) | (bytes[2]<<8) | (bytes[3]);
   */ 
-  //  *num = sum; 
+
 
    
 
-  //Take 3
-    
-    //   int readAttempt = fread(&a, 4, 1, ptr);
-    
- // if(readAttempt != 1){
-  //  printf("Unable to read versionn: %d\n", readAttempt);
-    // exit(-14);
-    // }
-  //  int outies  = (int)(vChar);
-  //  outies = 49;
-  //  printf("Outies:%i\n\n", outies);
-  //  *num = outies;
-  
    return num;
 
-  // return struct.unpack("<i", handle.read(4))[0]
+   //return struct.unpack("<i", handle.read(4))[0]
 }
 
 
