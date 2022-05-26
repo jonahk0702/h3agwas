@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 //This is a helper function
 //Should do all the reading and passes that to main File
 
@@ -22,8 +23,111 @@ char* read_ushort(char a){
   return b;
 }
 
+int read_byte(FILE* ptr){
+  char readIn;
+  int read;
+  int readAttempt = fread(&readIn, sizeof(char), 1, ptr);
+  if(readAttempt != 1){
+    printf("Unable to read in byte: %d\n", readAttempt);
+    exit(-14);
+  }
+  read = (int)(readIn);
+
+  return read;
+}
+
+uint32_t read_int(FILE* ptr){
+  uint32_t num; 
+
+
+  int success = fread(&num, sizeof(uint32_t), 1, ptr);
+  if(success != 1){
+    printf("int was read unsuccessfully:%i \n\n", success);
+    exit(-14);
+  }
+
+
+  //An attempt to make it little endian.
+
+
+  //Fance Internet Code didnt work :(
+  /*   char bytes[4];
+   int sum = 0;
+   fread(bytes, 4, 1,ptr);
+   
+   sum = bytes[0]<<24 | (bytes[1]<<16) | (bytes[2]<<8) | (bytes[3]);
+  */ 
+  //  *num = sum; 
+
+   
+
+  //Take 3
+    
+    //   int readAttempt = fread(&a, 4, 1, ptr);
+    
+ // if(readAttempt != 1){
+  //  printf("Unable to read versionn: %d\n", readAttempt);
+    // exit(-14);
+    // }
+  //  int outies  = (int)(vChar);
+  //  outies = 49;
+  //  printf("Outies:%i\n\n", outies);
+  //  *num = outies;
+  
+   return num;
+
+  // return struct.unpack("<i", handle.read(4))[0]
+}
+
+
+
+char* read_string(FILE* ptr){//Getting size of Data is NB to properly declare size of storing varibles
+  int total_length = 0;
+  int  partial_length = read_byte(ptr);
+  int num_bytes = 0;
+  
+  int read;
+  char readIn;
+  int readAttempt; 
+
+  int partHolder = partial_length;
+
+  //Would rather it were on the stack like this, but does not work. Seg Fault
+
+  char *result = (char*)malloc(partial_length  + 1);
+
+  //char result[partial_length + 1];
+
+  //Temparary solution. When rea
+  //  while(partial_length & 0x80 > 0){
+  while(1 == 3){
+    total_length += (partial_length & 0x7F) << (7 * num_bytes);
+    readAttempt = fread(&readIn, sizeof(char), 1, ptr);
+    if(readAttempt != 1){
+      printf("Error with reading String");
+      exit(-15);
+    }
+    partial_length = readIn;
+    num_bytes += 1;
+  }
+  total_length += partial_length << (7 * num_bytes);
+  readAttempt = fread(result, total_length, 1, ptr);
+  if(readAttempt != 1){
+    printf("Error reading in string");
+    exit(-12);
+  }
+  result[partHolder] = '\0';
+  if(strlen(result) < total_length){
+    printf("Unable to read the entire string");
+    exit(-12);
+  }
+
+  return result;
+}
+
+
 //char* read_ushort(char* filename);
-long read_int(FILE* ptr); // I know, read_int returns a long...
+uint32_t read_int(FILE* ptr); // I know, read_int returns a long...
 char* read_float(char* filename);
 int read_byte(FILE* ptr);
 char* read_string(FILE* ptr);
@@ -37,8 +141,6 @@ int __parse_file(char filename[40]);
 int main(){
   printf("Starting...\n");
   int t =  __parse_file("/home/jonahk/H3Africa.bpm");
-  //  char* j = read_ushort('o');
-  //  free(j);
   char names[25][10];
   char snps [25][10];
   char chroms [25][10];
@@ -74,16 +176,12 @@ int __parse_file(char filename[40]){
   char versionChar;
   int versionInt;
   int readIntVer;
-
-  int num_loci; //Will need to make sure this datatype is beg enough
   
   ptr = fopen(filename,"rb");
   if (ptr == NULL) {
     printf("Cannot find filename.");
     exit(-9);
   }
-
-  
 
   int err = fread(buffer,sizeof(buffer),1,ptr);
   if (err != 1) {
@@ -127,119 +225,20 @@ int __parse_file(char filename[40]){
     printf("Unsupported BPM version");
     exit(-13);
   }
-  read_string(ptr);
 
   if(readIntVer > 1){
-    printf("Reading in control_config\n\n");
-    //    control_config = read_string(ptr);
+     control_config = read_string(ptr);
   }
 
-  //  num_loci = read_int(ptr);
+  int num_loci;
+   num_loci = read_int(ptr);
 
-  //  free(control_config);
+
+  printf("loci:%i\n\n", num_loci);
+  
+  //  printf("Position in File:%ld \n", ftell(ptr)); 
   
   printf("Got to the end\n\n");
   return 1;
 }
-
-int read_byte(FILE* ptr){
-  char readIn;
-  int read;
-  int readAttempt = fread(&readIn, sizeof(char), 1, ptr);
-  if(readAttempt != 1){
-    printf("Unable to read in byte: %d\n", readAttempt);
-    exit(-14);
-  }
-  read = (int)(readIn);
-
-  return read;
-}
-
-long read_int(FILE* ptr){
-  long* num;
-  int success = fread(num, 4, 1, ptr);
-  if(success != 1){
-    printf("int was read unsuccessfully:%i \n\n", success);
-    exit(-14);
-  }
-  
-  return *num;
-
-  // return struct.unpack("<i", handle.read(4))[0]
-}
-
-char* read_string(FILE* ptr){//Getting size of Data is NB to properly declare size of storing varibles
-  int total_length = 0;
-  int  partial_length = read_byte(ptr);
-
-  
-  char readIn;
-  int readAttempt; 
-  int read;
-  
-  printf("Partion Len:%i\n\n", partial_length);
-  char* a = (char*)malloc(4);
-  *a = 'B';
-  char result[35];
-  
-    
-  // printf("Partial Len: %i\n\n", partial_length);
-  int num_bytes = 0;
-  while(partial_length & 0x80 > 0){
-    total_length += (partial_length & 0x7F) << (7 * num_bytes);
-    readAttempt = fread(&readIn, sizeof(char), 1, ptr);
-    if(readAttempt != 1){
-      printf("Error with reading String");
-      exit(-15);
-    }
-    read = (int)(readIn);
-    partial_length = read;
- 
-    num_bytes += 1;
-
-   }
-  total_length += partial_length << (7 * num_bytes);
-  total_length -=1;
-  readAttempt = fread(&result, total_length, 1, ptr);
-
-  if(readAttempt != 1){
-    printf("Error reading in string");
-    exit(-12);
-  }
-
-  printf("result:%s\n\n", result);
-  if(strlen(result) < total_length){
-    printf("Unable to read the entire string");
-    exit(-12);
-  }
-
-  return a;
-
-}
-
-//The Output of this functions is: result:3Africa_2017_20021485_A3.bpm▒\n0027630314:0027630314:
-//The desired output is H3Africa_2017_20021485_A3.bpm
-
-
-//The Python Code for Read_Int
-/*
-def read_string(handle):
-    total_length = 0
-    partial_length = read_byte(handle)
-    num_bytes = 0
-    while partial_length & 0x80 > 0:
-        total_length += (partial_length & 0x7F) << (7 * num_bytes)
-        partial_length = ord(struct.unpack("c", handle.read(1))[0])
-        num_bytes += 1
-    total_length += partial_length << (7 * num_bytes)
-    result = handle.read(total_length)
-    result = result.decode("utf-8")
-    if len(result) < total_length:
-        raise Exception("Failed to read complete string")
-    else:
-        return result
-
-
-*/
-
 
