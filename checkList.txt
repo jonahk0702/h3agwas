@@ -1,3 +1,10 @@
+**9 June**
+  - I am still struggling with the read string functions.
+  - Questions: Are these two statements equal?
+    partial_length = ord(struct.unpack("c", handle.read(1))[0])
+    handle.read(total_length)
+    As i use the same thing for both? 
+
 **26 May**
   - I have finally got the C to work but not sure its correct
     We spoke about the while loop not running most of the time.
