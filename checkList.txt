@@ -4,6 +4,8 @@
     partial_length = ord(struct.unpack("c", handle.read(1))[0])
     handle.read(total_length)
     As i use the same thing for both? 
+  - I had an idea to restructure the the BeadArrayFiles so nothing is really imported and I now am able to see all intermediate values
+  - Using this new method, I am able to see if previous things are right, as JT mentioned the Version. It is right, we use verion 4
 
 **26 May**
   - I have finally got the C to work but not sure its correct
