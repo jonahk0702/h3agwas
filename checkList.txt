@@ -7,7 +7,7 @@
   - I had an idea to restructure the the BeadArrayFiles so nothing is really imported and I now am able to see all intermediate values
   - Using this new method, I am able to see if previous things are right, as JT mentioned the Version. It is right, we use verion 4
   - Had a giant breakthrough
-    b = 29 & 0x80, means b = 0
+    [int] b = 29 & 0x80, means b = 0
     in pythonn - >  if(29 & 0x80 > 0) returns false
     in c ->         if(29 & 0x80 > 0) returns true.
     in c ->         if(b > 0) returns false. Thus, use this second version!
