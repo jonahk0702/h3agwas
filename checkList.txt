@@ -13,6 +13,7 @@
     in c ->         if(b > 0) returns false. Thus, use this second version!
     
   - That -24 I was getting a while ago, I got it! Its an usigned int. But even when I declare unsigned, it is still signed. So i used twos compliment
+  - I have done it! I am a genius! I have comptete the Read_string funcntion. It was sooo hard. But I am a GG
 
 **26 May**
   - I have finally got the C to work but not sure its correct
