@@ -1,3 +1,10 @@
+**23 June**
+  - Something very wierd is happening in the hash table
+    the key is a unique id. there is a key array
+    the value is the Keys postion in that array...
+    Is hashtable the correct data type?
+
+
 **9 June**
   - I am still struggling with the read string functions.
   - Questions: Are these two statements equal?
