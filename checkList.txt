@@ -1,3 +1,9 @@
+7 June 
+  - First had an issue with python reading 0 bytes perfecty but c fails.
+    So added my own versoin\
+  - I want to write a new read_string function that does not malloc and one that does.
+
+
 **23 June**
   - Something very wierd is happening in the hash table
     the key is a unique id. there is a key array
