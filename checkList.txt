@@ -1,3 +1,12 @@
+**07 July**
+     - Step 1 - I would like to make my hash function more effiecnt.
+     
+     - Will start by taking out dumb errors.
+     - First test, it will take 2mins and 8 seconds for just the hash table loop.
+     - Done some changes. Re run, took 1 Minute and 15 Seconds! Way Better!
+     
+
+
 **23 June**
   - Something very wierd is happening in the hash table
     the key is a unique id. there is a key array
