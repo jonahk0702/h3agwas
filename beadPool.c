@@ -12,53 +12,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "beadPool.h"
 
-//Declaring the functions.
-//On first iteration, each function will return sample data. Testing my c syntax
-//On second iteration, each function will return proper data.
+//Just a test
 
-typedef struct{
-  char* ilmn_id;
-  char* name;
-  char* snp;
-  char* chrom;
-  int map_info;
-  int assay_type;
-  int address_a;
-  int address_b;
-  int ref_strand;
-  int source_strand;
-} locusEntry;
-
-//char* read_ushort(char* filename);
-uint32_t read_int(FILE* ptr); // I know, read_int returns a long...
-char* read_float(char* filename);
-int read_byte(FILE* ptr);
-char*  read_string(FILE* ptr);
-char read_char(char* handle);
-int decode_code_point(char **s);
-int __parse_file(char* filename);
-
-int id2hash(char* name);
-int  hash_find(char ** bim_table, char * snp);
-void hash_add(char * snp, int p);
-void hash_init();
-locusEntry* create_locus_entry(FILE* ptr);
-
-//Now declaring functions from the SourceStrang object
-char to_string(int source_strand);
-int from_string(char source_strand);
-
-int ref_from_string(char ref_strand);
+#include <limits.h>
 
 
-
-//Some constants for the hash Table
-#define hash_size (1<<30)
-
-static int  table[hash_size];
-const static int  mask = hash_size-1;
-static char **id_table;
+int cmpfunc (const void * a, const void * b);
 
 
 //atrributes. The sizes of these still needs to be calculated
@@ -78,10 +39,17 @@ int main(){
 }
 
 
+
+
+
 //Actually declaring the functions
 //I think these should be put into anther file and imported. Just figuring out the syntax
 
 int __parse_file(char* filename){
+
+   ht_t *ht = ht_create();
+
+   
   char buffer[3];
 
   char* unstrct_string;
@@ -156,32 +124,24 @@ int __parse_file(char* filename){
 
   char** names = (char **)calloc(num_loci, sizeof(char*));
 
-  hash_init();
-  printf("hashtable initilised\n\n");
   fseek(ptr, 4 * num_loci, SEEK_CUR);
 
-
+  printf("about to create hashtable\n\n");
   for(int i = 0; i < num_loci; ++i){
     names[i] = read_string(ptr);
-      //  (char*)malloc(strlen(tempStr) + 1);
-      // strcpy(names[i], tempStr);
-    //Here I want to make the Hash Table!
-    // They key is tempStr. the bvalue is is i.
-    hash_add(names[i], i);
-    //Note that Id_table is the same as names. Can reuse
-    //   id_table[i] = (char*)malloc(strlen(tempStr)+1);
-    //strcpy(id_table[i], tempStr);
-  }
+
+    ht_set(ht, names[i], i);
+   //       hash_add(names[i], i);
+    }
   printf("Array of all names obtained\n\n");
   printf("Hash table created\n\n");
 
-  int* normalization_id = (int*)calloc(num_loci, sizeof(uint8_t));
+  int* normalization_ids = (int*)calloc(num_loci, sizeof(uint8_t));
 
   //Not 10 here!! NUm loci!!
   for(int i = 0; i < num_loci; ++i){
-    normalization_id[i] = read_byte(ptr);
+    normalization_ids[i] = read_byte(ptr);
   }
-  printf("Normilizatio ID array created\n\n");
 
   int* assay_types = (int*)calloc(num_loci, sizeof(int));
   int* addresses = (int*)calloc(num_loci, sizeof(int));
@@ -196,22 +156,46 @@ int __parse_file(char* filename){
 
 
   //for(int i = 0; i < num_loci; ++i){
-  for(int i = 0; i < 1; ++i){
+  for(int i = 0; i < num_loci; ++i){
     locusEntry *locus_entry = create_locus_entry(ptr);
-    char* theName = locus_entry->name;
-    printf("theName is :%s\n\n", theName);
-    int* bb = hash_find(id_table, theName);
-    printf("the BB is: %i\n\n", bb);
-    int poss = table[bb];
-    printf("Poss is :%i\n\n", poss);
-    //      assay_types[name_lookup]
+    int arrayPos = ht_get(ht, locus_entry->name);
+
+    assay_types[arrayPos] = locus_entry->assay_type;
+    addresses[arrayPos] = locus_entry->address_a;
+    snps[arrayPos] = locus_entry->snp;
+    chroms[arrayPos] = locus_entry->chrom;
+    
+    map_infos[arrayPos] = locus_entry->map_info;
+    ref_strands[arrayPos] = locus_entry->ref_strand;
+    source_strands[arrayPos] = locus_entry->source_strand;
   }
+
+  //I want to compare number of elements in each array
+  if( sizeof(normalization_ids)/4 != sizeof(assay_types)/4){
+    printf("Manifest format error: read invalid number of assay entries\n\n");
+    exit(-59);
+  }
+
+  int* all_norms_ids = (int*)calloc(num_loci, sizeof(int));
+  for(int i = 0; i < num_loci; ++i){
+    normalization_ids[i] += 100 * assay_types[i];
+
+    // # To mimic the byte-wrapping behavior from GenomeStudio, AutoCall, IAAP take the mod of 256
+    normalization_ids[i] %= 256;
+    all_norms_ids[i] = normalization_ids[i];
+  }
+  printf("Before sorting the list is: \n");
+
+  qsort(normalization_ids, num_loci, sizeof(int), cmpfunc);
+
+
 
 
 
   printf("I made it to the end.\n");
   printf("freeing memeory...\n");
 
+  free(all_norms_ids);
   //  free(names);
   // free(normalization_id);
   free(assay_types);
@@ -224,48 +208,6 @@ int __parse_file(char* filename){
 
   return 1;
   
-}
-
-//The hash Function
-void hash_add(char * snp, int p) {
-  int ind, i=1;
-  ind = id2hash(snp);
-  while(table[ind] != -1) {
-    ind=(ind+i)&mask;
-    i=i+2;
-  }
-  table[ind]=p;
-}
-
-int id2hash ( char * name) {
-  int result=0;
-  for(int i=0; name[i]!=0; i++) {
-    result = (result<<1);
-    result = (result+name[i]) ^ (name[i]<<8)+1027*(name[i]);
-  }
-  result=result&mask;
-  return result;
-}
-
-
-int  hash_find(char ** id_table, char * snp) {
-  int ind, orig,i=1;
-  orig=ind = id2hash(snp);
-
-  while((table[ind]!=-1) && (strcmp(id_table[table[ind]],snp) != 0)) {
-    ind=(ind+i)&mask;
-    i=i+2;
-  }
-
-  if (table[ind]==-1) {
-    printf("No entry <%s> %d in hash table\n", snp, orig);
-    exit(-17);
-  }
-  return table[ind];
-}
-
-void hash_init () {
-  memset(table,-1,hash_size);
 }
 
 int read_byte(FILE* ptr){
@@ -365,7 +307,6 @@ locusEntry* create_locus_entry(FILE* ptr){
   int source_strand = 0;
   //Entering the pass_file phase
   int version = read_int(ptr);
-  printf("The given version is:%i\n\n", version);
 
 
  if(version == 6 || version == 7 || version == 8){
@@ -386,7 +327,7 @@ locusEntry* create_locus_entry(FILE* ptr){
     char value = ilmn_id[target - 1];
     
     source_strand = from_string(value);
-    
+
     name = read_string(ptr);
 
     char* a;
@@ -443,7 +384,6 @@ locusEntry* create_locus_entry(FILE* ptr){
       }
     }
     
-    printf("Got to the end\n\n");
   }
   if(version == 7 || version == 8){
     int tempRead = 0;
@@ -453,7 +393,6 @@ locusEntry* create_locus_entry(FILE* ptr){
 
   if(version == 8){
     ref_strand = ref_from_string(read_string(ptr)[0]);
-    printf("The ref strand is:%i\n\n", ref_strand);
   }
   
   locus_entry->ilmn_id = ilmn_id;
@@ -466,9 +405,8 @@ locusEntry* create_locus_entry(FILE* ptr){
   locus_entry->address_a = address_a;
   locus_entry->address_b = address_b;
   locus_entry->ref_strand = ref_strand;
-  locus_entry->source_strand = 0;
+  locus_entry->source_strand = source_strand;
   
-  printf("line 437 reached\n\n");
   return locus_entry;
 }
 
@@ -514,6 +452,121 @@ int ref_from_string(char ref_strand){
   }else if(ref_strand == '-'){
     return 2;
   }
+}
 
 
+unsigned int hash(const char *key) {
+    unsigned long int value = 0;
+    unsigned int i = 0;
+    unsigned int key_len = strlen(key);
+
+    // do several rounds of multiplication
+    for (; i < key_len; ++i) {
+        value = value * 37 + key[i];
+    }
+
+    // make sure value is 0 <= value < TABLE_SIZE
+    value = value % TABLE_SIZE;
+
+    return value;
+}
+
+entry_t *ht_pair(const char *key, const int value) {
+    // allocate the entry
+    entry_t *entry = malloc(sizeof(entry_t) * 1);
+    entry->key = malloc(strlen(key) + 1);
+    entry->value = 0;
+
+      //(int* )malloc(sizeof(value) + 1);
+
+    // copy the key and value in place
+    strcpy(entry->key, key);
+    entry->value = value;
+
+    // next starts out null but may be set later on
+    entry->next = NULL;
+
+    return entry;
+}
+
+ht_t *ht_create(void) {
+    // allocate table
+    ht_t *hashtable = malloc(sizeof(ht_t) * 1);
+
+    // allocate table entries
+    hashtable->entries = malloc(sizeof(entry_t*) * TABLE_SIZE);
+
+    // set each to null (needed for proper operation)
+    int i = 0;
+    for (; i < TABLE_SIZE; ++i) {
+        hashtable->entries[i] = NULL;
+    }
+
+    return hashtable;
+}
+
+void ht_set(ht_t *hashtable, const char *key, int value) {
+    unsigned int slot = hash(key);
+
+    // try to look up an entry set
+    entry_t *entry = hashtable->entries[slot];
+
+    // no entry means slot empty, insert immediately
+    if (entry == NULL) {
+        hashtable->entries[slot] = ht_pair(key, value);
+        return;
+    }
+
+    entry_t *prev;
+
+    // walk through each entry until either the end is
+    // reached or a matching key is found
+    while (entry != NULL) {
+        // check key
+        if (strcmp(entry->key, key) == 0) {
+            // match found, replace value
+	  //            free(entry->value);
+	  //            entry->value = malloc(strlen(value) + 1);
+            entry->value = value;
+            return;
+        }
+
+        // walk to next
+        prev = entry;
+        entry = prev->next;
+    }
+
+    // end of chain reached without a match, add new
+    prev->next = ht_pair(key, value);
+}
+
+int ht_get(ht_t *hashtable, const char *key) {
+    unsigned int slot = hash(key);
+
+    // try to find a valid slot
+    entry_t *entry = hashtable->entries[slot];
+
+    // no slot means no entry
+    if (entry == NULL) {
+        return -1;
+    }
+
+    // walk through each entry in the slot, which could just be a single thing
+    while (entry != NULL) {
+        // return value if found
+        if (strcmp(entry->key, key) == 0) {
+            return entry->value;
+        }
+
+        // proceed to next key if available
+        entry = entry->next;
+    }
+
+    // reaching here means there were >= 1 entries but no key match
+    return -1;
+}
+//Ending
+
+int cmpfunc (const void * a, const void * b) {
+   return ( *(int*)a - *(int*)b );
 }
