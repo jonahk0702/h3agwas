@@ -20,11 +20,11 @@ typedef struct{
 
 uint32_t read_int(FILE* ptr); // I know, read_int returns a long...
 char* read_float(char* filename);
-int read_byte(FILE* ptr);
+uint8_t read_byte(FILE* ptr);
 char*  read_string(FILE* ptr);
 char read_char(char* handle);
 int decode_code_point(char **s);
-int __parse_file(char* filename);
+uint8_t __parse_file(char* filename);
 
 
 locusEntry* create_locus_entry(FILE* ptr);
