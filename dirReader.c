@@ -17,7 +17,6 @@ int EndsWithGTC( char *string )
 }
 
 
-
 uint8_t read_byte(FILE* ptr);
 uint32_t read_int(FILE* ptr);
 uint8_t is_write_complete(uint8_t version, char* fileName, uint32_t seekValue, uint32_t offset, uint32_t count);
@@ -29,8 +28,10 @@ int get_logr_ratios(char* fileName, uint32_t seekValue, uint32_t offset, uint8_t
 uint32_t __get_generic_array_numpy(char* fileName, uint32_t seekValue, uint32_t offset, uint8_t numBytes, uint32_t count);
 uint8_t __get_generic(char* fileName, uint32_t seekValue);  
 char* read_string(FILE* ptr);
-
-
+uint8_t* __get_generic_array(uint32_t seekValue, uint32_t offset, uint32_t count, char* fileName);
+  
+uint8_t* get_genotypes(char* fileName, uint32_t seekValue);
+  
 int main(void) {
   int num_gtc_files = 1;//Need to allocate array and have no idea.
   int actual_use = 0;
@@ -133,12 +134,19 @@ int main(void) {
       printf("GTC file is incomplete\n");
       exit(10);
     }
-    
 
+    for(int ii = 0; ii < 256; ++ ii){
+      if(keys[ii] == 1002){
+	printf("Found next value\n\n");
+	seekValue = values[ii];
+      }
+    }
+    uint8_t* actualArray = get_genotypes(gtcFiles[i], seekValue);
     
   }
 
-printf("All seems good \n\n");
+
+
 
   for(int i = 0; i < num_gtc_files; ++i){
     //Does not work
@@ -266,7 +274,7 @@ uint8_t __get_generic(char* fileName, uint32_t seekValue){
   strValue = read_string(ptr);
  
   //  printf("str value is: \n%s\n", strValue);
-  free(strValue)
+  free(strValue);
   fclose(ptr);
   return 1;
 }
@@ -335,40 +343,59 @@ uint32_t __get_generic_array_numpy(char* fileName, uint32_t seekValue, uint32_t 
 
 
 
-int* get_genotypes(uint32_t offset, uint32_t count){
-  return __get_generic_array(GenotypeCalls.__ID_GENOTYPES, read_byte, 1, offset, count);
+uint8_t* get_genotypes(char* fileName, uint32_t seekValue){
+  uint8_t* result = __get_generic_array(seekValue,  0,0, fileName);
+  return result;
   
   
 }
   
-int* __get_generic_array(uint32_t seekValue, uint32_t itemSize, uint32_t offset, uint32_t count, char* fileName){
+uint8_t* __get_generic_array(uint32_t seekValue, uint32_t offset, uint32_t count, char* fileName){
+  uint8_t itemSize = 1;
+  
   FILE* ptr;
+  printf("Second function hit \n\n");
   ptr = fopen(fileName, "rb");
   if(ptr == NULL){
     printf("Cannot read file in get Generic Array ");
     exit(10);
   }
-
-  uint32_t num_entries = read_int(ptr) - offset;
-
+  printf("Seek value is %i\n\n", seekValue);
   fseek(ptr, seekValue, SEEK_CUR);
-
+  uint32_t num_entries = read_int(ptr) - offset;
+  printf("Num entries is %i\n\n", num_entries);
+  
   if(count != 0){
     if(count < num_entries){
       num_entries = count;
     }
   }
-
+  
   if(offset > 0){
     uint32_t newSeekVal = seekValue + 4 + offset*itemSize;
     fseek(ptr, newSeekVal, SEEK_CUR);
   }
-  int* result = (int*)calloc(num_entries, sizeof(uint8_t));
+  
+  uint8_t* result = malloc(num_entries + 1);
+
+  printf("I am line %i\n\n", ftell(ptr));
+  printf("I made it to the reads part!\n\n");
+
+  int readAttempt = fread(result, 1, num_entries, ptr);
+  printf("Get to ends\n\n");
+  fclose(ptr);
 
   
-  for(uint32_t i = 0; i < num_entries; ++i){
-    result[counter] = read_byte(ptr);
-  }
   return result;
+
+}
+
+uint8_t * get_base_calls_plus_strand(char** snps, int* ref_strands){
+  
+  return get_base_calls_generic(snps, ref_strands, 1, 0);
+}
+
+uint8_t* get_base_calls_generic(char** snps, int* ref_strands, uint8_t report_strand, uint8_t unknown_annotation){
+  uint8_t genotypes = getGenotypes();
 
 }
