@@ -55,3 +55,25 @@ entry_t *ht_pair(const char *key, const int value);
 ht_t *ht_create(void);
 void ht_set(ht_t *hashtable, const char *key, int value);
 int ht_get(ht_t *hashtable, const char *key);
+
+
+
+//Functions to read the GTC
+int EndsWithGTC( char *string );
+uint8_t is_write_complete(uint8_t version, char* fileName, uint32_t seekValue, uint32_t offset, uint32_t count);
+int get_num_intensity_only(char* fileName, uint32_t seekValue);
+uint8_t get_slide_identifier(char* fileName, uint32_t seekValue);
+
+int get_logr_ratios(char* fileName, uint32_t seekValue, uint32_t offset, uint8_t numBytes, uint8_t version, uint32_t count);
+uint32_t __get_generic_array_numpy(char* fileName, uint32_t seekValue, uint32_t offset, uint8_t numBytes, uint32_t count);
+uint8_t __get_generic(char* fileName, uint32_t seekValue);  
+char* read_string(FILE* ptr);
+uint8_t* __get_generic_array(uint32_t seekValue, uint32_t offset, uint32_t count, char* fileName);
+  
+uint8_t* get_genotypes(char* fileName, uint32_t seekValue);
+
+uint8_t* get_base_calls_generic(char** snps, int* ref_strands, uint8_t* genotypes, uint32_t seekValue, char* fileName, uint32_t num_loci);
+uint8_t * get_base_calls_plus_strand(char** snps, int* ref_strands, uint8_t* genotypes, uint32_t seekValue, char* fileName, uint32_t num_loci);
+
+
+char complement(char nucleotide);

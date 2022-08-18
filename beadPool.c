@@ -1,6 +1,7 @@
 //This is a helper function
 //Should do all the reading and passes that to main File
 //All my includes
+#include <dirent.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -23,11 +24,123 @@ locusEntry* locus_entry;
 
 //atrributes. The sizes of these still needs to be calculated
 //Would rather store them all on the heap for some flexibility
+
+
+
+ char* read_string_test(FILE* ptr){
+   uint32_t total_length = 0;
+
+   uint32_t num_bytes = 0;
+   uint32_t read; 
+   char readIn; 
+   uint32_t readAttempt;
+
+   int partial_length = read_byte(ptr);
+
+   if(partial_length < 0){
+     partial_length = 256 + partial_length;
+   }
+
+   int b = partial_length & 0x80;
+   while(b > 0){ 
+     total_length += (partial_length & 0x7F) << (7 * num_bytes); 
+     readAttempt = fread(&partial_length, sizeof(char), 1, ptr); 
+     if(readAttempt != 1){
+       printf("Error with reading String"); 
+       exit(-15); 
+     } 
+     b = partial_length & 0x80; 
+     num_bytes += 1; 
+   }
+
+
+   total_length += partial_length << (7 * num_bytes);
+
+
+   //   static char* resTry;
+
+   char* result = (char*)malloc(total_length+1);
+
+   if(total_length == 0){
+
+     
+     result = "";
+
+   }else{
+     //     readAttempt = fread(resTry, total_length, 1, ptr);
+        readAttempt = fread(result, total_length, 1, ptr);
+
+     //     readAttempt = fread(resReTry, total_length, 1, ptr);
+
+     if(readAttempt != 1){ 
+       printf("Error reading in string"); 
+       exit(-12); 
+     }
+
+     result[total_length] = '\0';
+     //     resTry[total_length] = '\0';
+     //resReTry[total_length] = '\0';
+
+     if(strlen(result) < total_length){
+     //     if(strlen(resTry) < total_length){
+       //  if(strlen(resReTry) < total_length){
+       printf("Unable to read the entire string");
+       exit(-12);
+     } 
+   } 
+
+   return result;
+   //       return resReTry;
+       //     return resTry;
+}
+
+
+void read_test(FILE* ptr, char** a){
+   uint32_t total_length = 0;
+   uint32_t num_bytes = 0;
+   uint32_t read; 
+   char readIn; 
+   uint32_t readAttempt;
+   int partial_length = read_byte(ptr);
+   if(partial_length < 0){
+     partial_length = 256 + partial_length;
+   }
+   int b = partial_length & 0x80;
+   while(b > 0){ 
+     total_length += (partial_length & 0x7F) << (7 * num_bytes); 
+     readAttempt = fread(&partial_length, sizeof(char), 1, ptr); 
+     if(readAttempt != 1){
+       printf("Error with reading String"); 
+       exit(-15); 
+     } 
+     b = partial_length & 0x80; 
+     num_bytes += 1; 
+   }
+   total_length += partial_length << (7 * num_bytes);
+   *a = (char*)malloc(total_length + 1);
+    readAttempt = fread(*a, total_length, 1, ptr);
+    (*a)[total_length] = '\0';
+ 
+   if(total_length == 0){
+
+     printf("Note there was an 0\n\n");
+ 
+
+   }
+}
+ 
+
+
 int main(){
   printf("Starting...\n");
 
   uint8_t t =  __parse_file("/home/jonahk/H3Africa.bpm");
 
+
+  printf("done the paserser\n");
+ 
+
+ 
   return 0;
 }
 
@@ -42,9 +155,10 @@ uint8_t __parse_file(char* filename){
 
   char buffer[3];
 
-  char* unstrct_string;
   char* control_config;
   char* manifest_name;
+
+
 
   FILE *ptr;
   uint16_t version_flag = 4096;
@@ -99,35 +213,38 @@ uint8_t __parse_file(char* filename){
     printf("Unsupported BPM version");
     exit(-13);
   }
-  manifest_name = read_string(ptr);
 
-  manifest_name[29] = '\0';
+ 
+  
+
+  manifest_name = NULL;
+  read_test(ptr, &manifest_name);
+
+
   printf("Manifest name read succesfully:%s\n\n", manifest_name);
 
   if(readIntVer > 1){
-    control_config = read_string(ptr);
-     printf("control_config read successfully\n\n");
+    read_test(ptr, &control_config);
+    printf("control_config read successfully\n\n");
   }
 
   num_loci = read_int(ptr);
   printf("Num loci:%i\n\n", num_loci);
 
-
-  //
-
   locus_entry = (locusEntry*)malloc(sizeof(locusEntry));
-  //
 
-  char** names = (char **)calloc(num_loci, sizeof(char*));
-
+  char** names = (char**)malloc(num_loci * sizeof(char*));
+  
   fseek(ptr, 4 * num_loci, SEEK_CUR);
 
-for(uint32_t i = 0; i < num_loci; ++i){
-    names[i] = read_string(ptr);
-
+  for(uint32_t i = 0; i < num_loci; ++i){
+    read_test(ptr, &names[i]);
     ht_set(ht, names[i], i);
   }
 
+  for(uint32_t i = 0; i < num_loci; ++i){
+      free(names[i]);
+  }
 
   int* normalization_ids = (int*)calloc(num_loci, sizeof(uint8_t));
 
@@ -138,10 +255,7 @@ for(uint32_t i = 0; i < num_loci; ++i){
   int* assay_types = (int*)calloc(num_loci, 4);
   int* addresses = (int*)calloc(num_loci, 4);
   char** snps = (char**)calloc(num_loci, sizeof(char*));
-
-
   char** chroms = (char**)calloc(num_loci, sizeof(char*));
-
   int* map_infos = (int*)calloc(num_loci, sizeof(int));
   int* ref_strands = (int*)calloc(num_loci, sizeof(int));
   int* source_strands = (int*)calloc(num_loci, sizeof(int));
@@ -186,25 +300,157 @@ for(uint32_t i = 0; i < num_loci; ++i){
   }
 
    int* normalization_lookups = (int*)calloc(num_loci, sizeof(int));
-  for(int i = 0; i < num_loci; ++i){
-    normalization_lookups[i] =  key[normalization_ids[i]];
+
+   //Not sure which one ...
+   //    for(int i = 0; i < num_loci; ++i){
+    for(int i = 0; i < 1; ++i){
+      normalization_lookups[i] =  key[normalization_ids[i]];
+    }
+
+    printf("Moving to Reader\n");
+
+    printf("............\n");
+
+    uint16_t num_gtc_files = 1;
+    uint16_t actual_use = 0;
+
+
+     // I know 512 seems random. But 256 is the limit of dirent struct. So added for path name
+  char directoryName[512] =  "/home/jonahk/GTCs";
+  
+  DIR *d;
+  struct dirent *dir;
+  d = opendir(directoryName);
+
+  char** gtcFiles = (char**)calloc(num_gtc_files, sizeof(char*));
+  
+  if (d) {
+    while ((dir = readdir(d)) != NULL) {
+      if(EndsWithGTC(dir->d_name) == 0){
+
+	strcat(directoryName, "/");
+	
+	strcat(directoryName, dir->d_name);
+	gtcFiles[actual_use] = (char*)malloc(strlen(dir->d_name)+ 1);
+	gtcFiles[actual_use] = directoryName;
+	actual_use ++;
+      }
+    }
+    closedir(d);
   }
 
+  //  buffer = "";
+  for(int i = 0; i < num_gtc_files; i++){
+    //Here I  satrt genotype calls.
+    FILE* ptr;
+    ptr = fopen(gtcFiles[i], "rb");
+    if(ptr == NULL){
+      printf("Cannot find File\n\n");
+      exit(1);
+    }
+    uint8_t readAttempt = fread(buffer, 3,1,ptr);
+
+
+    if(readAttempt != 1){
+      printf("Unable to read magic number");
+      exit(10);
+    }
+    if (strncmp(buffer,"gtc",3) != 0) {
+      printf("Given file is not gtc  <%d>\n",readAttempt);
+      exit(-11);
+    }
+
+    uint8_t version = read_byte(ptr);
+    printf("%i is the version \n\n", version);
+
+     //Check if version is supported
+    if(version <  3 || version > 5){
+      //An Issue
+      printf("Unsupported GTC File vesion");
+      exit(10);
+    }
+
+    int number_toc_entries = read_int(ptr);
+    printf("Number toc is :%i\n\n", number_toc_entries);
+
+
+
+    //This shou;d be changed to a Hashtable later!
+    //Now just not effiecent
+    //Its a signed 16 bit number, thus 32 768?
+    uint16_t id;
+    uint32_t offset;
+
+    //My onw bad implementation of a hashtabkle
+    //We do not know how big Num_toc really is. so should make this more flexible.
+    int keys[256];
+    int values[256];
+    
+
+    for(int i = 0; i < number_toc_entries; ++ i){
+     
+      readAttempt = fread(&id, 2, 1, ptr);
+      readAttempt = fread(&offset, 4, 1, ptr);
+
+      keys[i] = id;
+      values[i] = offset;      
+      
+    }
+    //(uint8_t version, char* fileName, uint32_t seekValue, uint32_t offset, uint32_t count);
+
+    uint32_t seekValue = 0;
+    if(version == 5){
+      seekValue = 1016;
+      for(int ii = 0; ii < 256; ii ++){
+	if(keys[ii] == 1016){
+	  printf("Found it at! %i\n\n", values[ii]);
+	  seekValue = values[ii];
+	}
+
+      }
+    }
+    if(is_write_complete(version, gtcFiles[i], seekValue, 0, 0) == 0){
+      printf("GTC file is incomplete\n");
+      exit(10);
+    }
+
+    for(int ii = 0; ii < 256; ++ ii){
+      if(keys[ii] == 1002){
+
+	seekValue = values[ii];
+      }
+    }
+    uint8_t* genotypes = get_genotypes(gtcFiles[i], seekValue);
+
+
+    printf("Pre runs!!\n\n");
+    uint8_t * plus_array =  get_base_calls_plus_strand (snps,  ref_strands,genotypes, seekValue, gtcFiles[i], num_loci);
+
+  }
+    
+     
   printf("I made it to the end.\n");
   printf("freeing memeory...\n");
+  
 
+  for(uint32_t i = 0; i < num_loci; ++ i){
+    free(snps[i]);
+    free(chroms[i]);
+  }
   free(all_norms_ids);
+  free(manifest_name); 
+  free(control_config);
   free(normalization_lookups);
-   //  free(names);
-  // free(normalization_id);
+  free(normalization_ids);
   free(assay_types);
-  // free(addresses);
+  free(addresses);
   free(snps);
   free(chroms);
   free(map_infos);
   free(ref_strands);
   free(source_strands);
   free(locus_entry);
+
   return 1;
 
 }
@@ -229,73 +475,71 @@ uint32_t read_int(FILE* ptr){
    return num;
 }
 
-char* read_string(FILE* ptr){
-  uint32_t total_length = 0;
+ char* read_string(FILE* ptr){
+   uint32_t total_length = 0;
 
-  uint32_t num_bytes = 0;
-  uint32_t read;
-  char readIn;
-  uint32_t readAttempt;
+   uint32_t num_bytes = 0;
+   uint32_t read; 
+   char readIn; 
+   uint32_t readAttempt;
 
-  int partial_length = read_byte(ptr);
+   int partial_length = read_byte(ptr);
 
-  if(partial_length < 0){
-    partial_length = 256 + partial_length;
-  }
+   if(partial_length < 0){
+     partial_length = 256 + partial_length;
+   }
 
-  int b = partial_length & 0x80;
-  while(b > 0){
-    total_length += (partial_length & 0x7F) << (7 * num_bytes);
-    readAttempt = fread(&partial_length, sizeof(char), 1, ptr);
-    if(readAttempt != 1){
-      printf("Error with reading String");
-      exit(-15);
-    }
-    b = partial_length & 0x80;
-    num_bytes += 1;
-  }
-
-
-  total_length += partial_length << (7 * num_bytes);
-
-  char* result;
-
-  if(total_length == 0){
-    result = "";
-
-  }else{
-
-   //    if(total_length > 100){
-    //   free(result);
-    //  result = (char*)malloc(total_length+1);
-    //  }
+   int b = partial_length & 0x80;
+   while(b > 0){ 
+     total_length += (partial_length & 0x7F) << (7 * num_bytes); 
+     readAttempt = fread(&partial_length, sizeof(char), 1, ptr); 
+     if(readAttempt != 1){
+       printf("Error with reading String"); 
+       exit(-15); 
+     } 
+     b = partial_length & 0x80; 
+     num_bytes += 1; 
+   }
 
 
+   total_length += partial_length << (7 * num_bytes); 
 
-    result=(char*)malloc(total_length+1);
-    readAttempt = fread(result, total_length, 1, ptr);
-    //////res = "";
-    //////readAttempt = fread(res, total_length,1,ptr);
-    if(readAttempt != 1){
-      printf("Error reading in string");
-      exit(-12);
-    }
-    /// /// ///    result[total_length] = '\0';
 
-    if(strlen(result) < total_length){
-      printf("Unable to read the entire string");
-      exit(-12);
-    }
-  }
+    char* result = (char*)malloc(total_length+1);
 
-  return result;
+   if(total_length == 0){ 
+     //   resTry = "";
+      result = "";
+
+   }else{
+
+ 
+     //     readAttempt = fread(resTry, total_length, 1, ptr);
+        readAttempt = fread(result, total_length, 1, ptr); 
+
+     if(readAttempt != 1){ 
+       printf("Error reading in string"); 
+       exit(-12); 
+     }
+
+     result[total_length] = '\0';
+	  //resTry[total_length] = '\0';
+
+     if(strlen(result) < total_length){
+     //if(strlen(resTry) < total_length){
+       printf("Unable to read the entire string");
+       exit(-12);
+     } 
+   } 
+
+     return result;
+     // return resTry;
 }
 
 //LocusEntry object functions
 
 locusEntry* create_locus_entry(FILE* ptr){
   //  locusEntry* locus_entry = (locusEntry*)malloc(sizeof(locusEntry));
-
 
   //This is initiallisation Phase
   char* ilmn_id = "";
@@ -312,8 +556,9 @@ locusEntry* create_locus_entry(FILE* ptr){
   int version = read_int(ptr);
 
    if(version == 6 || version == 7 || version == 8){
-   ilmn_id = read_string(ptr);
-
+     //   ilmn_id = read_string_test(ptr);
+     read_test(ptr, &ilmn_id);
+      
     int count = 0;
     int usedCounter = 0;
 
@@ -328,11 +573,12 @@ locusEntry* create_locus_entry(FILE* ptr){
 
     source_strand = from_string(value);
 
-    name = read_string(ptr);
+    name = read_string_test(ptr);
 
  char* a;
+ //For some reason, cannot use test
     for(int i = 0; i < 3; ++i){
-      a = read_string(ptr);
+      a = read_string_test(ptr);
     }
 
     int tempRead;
@@ -340,22 +586,27 @@ locusEntry* create_locus_entry(FILE* ptr){
 
 
     for(int i = 0; i < 2; ++i){
-      a = read_string(ptr);
+      a = read_string_test(ptr);
     }
 
-    snp = read_string(ptr);
 
-    chrom = read_string(ptr);
+    snp = read_string_test(ptr);
+
+    chrom = read_string_test(ptr);
+
 
     for(int i = 0; i < 2; ++ i){
       a = read_string(ptr);
     }
 
- map_info = atoi(read_string(ptr));
+
+    map_info = atoi(read_string(ptr));
+
 
     for(int i = 0; i < 2; ++i){
-      a = read_string(ptr);
+      a = read_string_test(ptr);
     }
+
 
     address_a = read_int(ptr);
     address_b = read_int(ptr);
@@ -393,6 +644,10 @@ locusEntry* create_locus_entry(FILE* ptr){
   if(version == 8){
     ref_strand = ref_from_string(read_string(ptr)[0]);
   }
+
+  // printf("pre ilmn \n");
+  // free(ilmn_id);
+  // printf("post ilmn \n");
 
   locus_entry->ilmn_id = ilmn_id;
   locus_entry->name = name;
@@ -565,4 +820,325 @@ int ht_get(ht_t *hashtable, const char *key) {
     }
     // reaching here means there were >= 1 entries but no key match
     return -1;
+}
+
+
+
+int EndsWithGTC( char *string ){
+  string = strrchr(string, '.');
+
+  if( string != NULL )
+    return( strcmp(string, ".gtc") );
+
+  return( -1 );
+  
+}
+
+
+uint8_t is_write_complete(uint8_t version, char* fileName, uint32_t seekValue, uint32_t offset, uint32_t count){
+
+  if(version == 3){
+    if( get_num_intensity_only(fileName, seekValue) == 1){
+      return 1;
+    }
+  }else if(version == 4){
+    return get_logr_ratios(fileName, seekValue, offset, 4, version, count);
+  }
+
+  else if(version == 5){
+    return get_slide_identifier(fileName, seekValue);
+  }
+ }
+
+uint8_t get_slide_identifier(char* fileName, uint32_t seekValue){
+  return __get_generic(fileName, seekValue);
+}
+
+uint8_t __get_generic(char* fileName, uint32_t seekValue){
+  FILE* ptr;
+  ptr = fopen(fileName, "rb");
+  if(ptr == NULL){
+    printf("Cannot find FileName");
+    exit(10);
+  }
+
+  fseek(ptr, seekValue, SEEK_CUR);
+
+  char* strValue;
+  strValue = read_string(ptr);
+ 
+  //  printf("str value is: \n%s\n", strValue);
+  free(strValue);
+  fclose(ptr);
+  return 1;
+}
+
+
+
+int get_num_intensity_only(char* fileName, uint32_t seekValue){
+  FILE* ptr;
+  ptr = fopen(fileName, "rb");
+  if(ptr == NULL){
+    printf("Cannot find FileName");
+    exit(10);
+  }
+
+  int testValue;
+  fseek(ptr, seekValue + 12, SEEK_CUR);
+  testValue = read_int(ptr);
+  printf("Value read and is: %i\n\n", testValue);
+  fclose(ptr);
+  return 1;
+}
+
+int get_logr_ratios(char* fileName, uint32_t seekValue, uint32_t offset, uint8_t numBytes, uint8_t version, uint32_t count){
+
+  if(version < 4){
+    printf("LogR ratios unavailable in GTC File version %i",version );
+    exit(10);
+  }
+  return __get_generic_array_numpy(fileName, seekValue, offset, numBytes, count);
+
+}
+
+uint32_t __get_generic_array_numpy(char* fileName, uint32_t seekValue, uint32_t offset, uint8_t numBytes, uint32_t count){
+  FILE* ptr;
+  ptr = fopen(fileName, "rb");
+  if(ptr == NULL){
+    printf("Cannot read file in get Generic Array ");
+    exit(10);
+  }
+
+  fseek(ptr, seekValue, SEEK_CUR);
+  uint32_t num_entries = read_int(ptr) - 12;
+
+  if(count != 0){
+    if(count < num_entries){
+      num_entries = count;
+    }
+  }
+  if(offset > 0){
+    fseek(ptr, seekValue + 4 + offset*numBytes, SEEK_CUR);
+  }
+
+  //return frombuffer(gtc_handle.read(num_entries * numpy_type.itemsize), dtype=numpy_type)
+
+  uint8_t readAttempt;
+  float* generic_array = (float*)calloc(num_entries, numBytes);
+  readAttempt = fread(generic_array, numBytes, num_entries,ptr);
+  
+  
+  
+  fclose(ptr);
+  //  return generic_array;
+  return readAttempt;//Trying to ake sure everything is okay
+  
+}
+
+
+
+uint8_t* get_genotypes(char* fileName, uint32_t seekValue){
+  uint8_t* result = __get_generic_array(seekValue,  0,0, fileName);
+  return result;
+  
+  
+}
+  
+uint8_t* __get_generic_array(uint32_t seekValue, uint32_t offset, uint32_t count, char* fileName){
+  uint8_t itemSize = 1;
+  
+  FILE* ptr;
+
+  ptr = fopen(fileName, "rb");
+  if(ptr == NULL){
+    printf("Cannot read file in get Generic Array ");
+    exit(10);
+  }
+  printf("Seek value is %i\n\n", seekValue);
+  fseek(ptr, seekValue, SEEK_CUR);
+  uint32_t num_entries = read_int(ptr) - offset;
+  printf("Num entries is %i\n\n", num_entries);
+  
+  if(count != 0){
+    if(count < num_entries){
+      num_entries = count;
+    }
+  }
+  
+  if(offset > 0){
+    uint32_t newSeekVal = seekValue + 4 + offset*itemSize;
+    fseek(ptr, newSeekVal, SEEK_CUR);
+  }
+  
+  uint8_t* result = malloc(num_entries + 1);
+
+  int readAttempt = fread(result, 1, num_entries, ptr);
+
+  fclose(ptr);
+  return result;
+
+}
+
+uint8_t * get_base_calls_plus_strand(char** snps, int* ref_strands, uint8_t* genotypes, uint32_t seekValue, char* fileName, uint32_t num_loci){
+  printf("Phase 2!");
+  return get_base_calls_generic(snps, ref_strands, genotypes, seekValue, fileName, num_loci);
+}
+
+uint8_t* get_base_calls_generic(char** snps, int* ref_strands, uint8_t* genotypes, uint32_t seekValue, char* fileName, uint32_t num_loci){
+  //  uint8_t genotypes = getGenotypes();
+  uint8_t report_strand = 1;
+  uint8_t unknown_annotation = 0;
+  printf("Phase 3\n\n");
+
+  //Thise is the code 2 genotpye global python varible
+  char code2genotype [46][8] = {
+    {"NC"},
+    {"AA"},
+    {"AB"},
+    {"BB"},
+    {"NULL"},
+    {"A"},
+    {"B"},
+    {"AAA"},
+    {"AAB"},
+    {"ABB"},
+    {"BBB"},
+    {"AAAA"},
+    {"AAAB"},
+    {"AABB"},
+    {"ABBB"},
+    {"BBBB"},
+    {"AAAAA"},
+    {"AAAAB"},
+    {"AAABB"},
+    {"AABBB"},
+    {"ABBBB"},
+    {"BBBBB"},
+    {"AAAAAA"},
+    {"AAAAAB"},
+    {"AAAABB"},
+    {"AAABBB"},
+    {"AABBBB"},
+    {"ABBBBB"},
+    {"BBBBBB"},
+    {"AAAAAAA"},
+    {"AAAAAAB"},
+    {"AAAAABB"},
+    {"AAAABBB"},
+    {"AAABBBB"},
+    {"AABBBBB"},
+    {"ABBBBBB"},
+    {"BBBBBBB"},
+    {"AAAAAAAA"},
+    {"AAAAAAAB"},
+    {"AAAAAABB"},
+    {"AAAAABBB"},
+    {"AAAABBBB"},
+    {"AAABBBBB"},
+    {"AABBBBBB"},
+    {"ABBBBBBB"},
+    {"BBBBBBBB"}
+  };
+
+  FILE* ptr;
+
+  ptr = fopen(fileName, "rb");
+  if(ptr == NULL){
+    printf("Cannot read file in get Generic Array ");
+    exit(10);
+  }
+  
+  fseek(ptr, seekValue, SEEK_CUR);
+  uint32_t num_entries = read_int(ptr);
+
+  if(num_entries != num_loci){
+    printf("The number of SNPs must match the number of loci in the GTC file");
+    exit(12);
+  }
+  
+  char** ret = (char**)malloc(3+num_loci*sizeof(char*));
+  for(uint32_t i = 0; i < 10; ++i){
+    char ab_genotype [8];
+ 
+    char a_nucleotide = snps[i][1];
+    char b_nucleotide = snps[i][strlen(snps[i])-2];
+    char result[100];
+    uint8_t index = 0;
+    
+    strcpy(ab_genotype, code2genotype[genotypes[i]] );
+    printf("A is %c\n", a_nucleotide);
+    printf("B is %c\n", b_nucleotide);
+    printf("ref strand is %i\n", ref_strands[i]);
+    printf("AB is %s\n", ab_genotype);
+    printf(".........\n\n");
+    
+    if(a_nucleotide == 'N' || b_nucleotide == 'N' ||  ref_strands[i] == 0 || strcmp(ab_genotype, "NC") == 1 || strcmp(ab_genotype, "NULL") == 1){
+      result[index] = '-';
+      index ++;
+      printf("Win\n");
+
+    }else{
+
+      char report_strand_nucleotides [100];
+      uint8_t ab_len = strlen(code2genotype[genotypes[i]]);
+
+      ab_len = 10;
+      
+      for(uint8_t ii = 0; ii < ab_len; ++ ii){
+	char nucleotide_allele [2];
+	
+	if(ab_genotype[ii] == 'A'){
+	  nucleotide_allele[0] = 'A';
+	}else{
+	   nucleotide_allele[0] = b_nucleotide;
+	   nucleotide_allele[1] = '\0';
+	}
+	char comp [2];
+	comp[0] = complement(nucleotide_allele[0]);
+
+	if(ref_strands[i] == 1){
+	  	  strcat(report_strand_nucleotides, nucleotide_allele);
+      	}else{
+	   strcat(report_strand_nucleotides, comp);
+	}
+	
+	//This requires heavy testing!
+	//ALso, complement is a function that can be found at BeadArrayUtility.
+
+	printf("%s - is da string\n", report_strand_nucleotides);
+      }
+     
+
+      
+    }
+                
+ 
+  }
+  free(ret);
+  
+  uint8_t* a = (uint8_t *)malloc(6);
+  return a;
+}
+
+
+char complement(char nucleotide){
+
+  if(nucleotide == 'A'){
+    return 'T';
+  }else if (nucleotide == 'T'){
+    return 'A';
+  }else if (nucleotide == 'C'){
+    return 'G';
+  }else if (nucleotide == 'G'){
+    return 'C';
+  }else if (nucleotide == 'D'){
+    return 'D';
+  }else if (nucleotide == 'I'){
+    return 'I';
+  }else{
+      printf("Nucleotide must be one of A, C, T, G, D, or I");
+      exit(10);
+      return ' ';
+  }
+
 }
