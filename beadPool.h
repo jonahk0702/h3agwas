@@ -72,8 +72,8 @@ uint8_t* __get_generic_array(uint32_t seekValue, uint32_t offset, uint32_t count
   
 uint8_t* get_genotypes(char* fileName, uint32_t seekValue);
 
-uint8_t* get_base_calls_generic(char** snps, int* ref_strands, uint8_t* genotypes, uint32_t seekValue, char* fileName, uint32_t num_loci);
-uint8_t * get_base_calls_plus_strand(char** snps, int* ref_strands, uint8_t* genotypes, uint32_t seekValue, char* fileName, uint32_t num_loci);
+char * get_base_calls_generic(char** snps, int* ref_strands, uint8_t* genotypes, uint32_t seekValue, char* fileName, uint32_t num_loci);
+char * get_base_calls_plus_strand(char** snps, int* ref_strands, uint8_t* genotypes, uint32_t seekValue, char* fileName, uint32_t num_loci);
 
 
 char complement(char nucleotide);

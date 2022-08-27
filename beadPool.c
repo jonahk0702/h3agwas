@@ -424,8 +424,12 @@ uint8_t __parse_file(char* filename){
 
 
     printf("Pre runs!!\n\n");
-    uint8_t * plus_array =  get_base_calls_plus_strand (snps,  ref_strands,genotypes, seekValue, gtcFiles[i], num_loci);
+    char * plus_array =  get_base_calls_plus_strand (snps,ref_strands,genotypes, seekValue, gtcFiles[i], num_loci);
 
+    printf("\nGot the dta\n");
+    free(plus_array);
+    printf("\nReally got the data\n");
+    
   }
     
      
@@ -514,7 +518,7 @@ uint32_t read_int(FILE* ptr){
    }else{
 
  
-     //     readAttempt = fread(resTry, total_length, 1, ptr);
+
         readAttempt = fread(result, total_length, 1, ptr); 
 
      if(readAttempt != 1){ 
@@ -979,16 +983,16 @@ uint8_t* __get_generic_array(uint32_t seekValue, uint32_t offset, uint32_t count
 
 }
 
-uint8_t * get_base_calls_plus_strand(char** snps, int* ref_strands, uint8_t* genotypes, uint32_t seekValue, char* fileName, uint32_t num_loci){
+char * get_base_calls_plus_strand(char** snps, int* ref_strands, uint8_t* genotypes, uint32_t seekValue, char* fileName, uint32_t num_loci){
   printf("Phase 2!");
   return get_base_calls_generic(snps, ref_strands, genotypes, seekValue, fileName, num_loci);
 }
 
-uint8_t* get_base_calls_generic(char** snps, int* ref_strands, uint8_t* genotypes, uint32_t seekValue, char* fileName, uint32_t num_loci){
+char* get_base_calls_generic(char** snps, int* ref_strands, uint8_t* genotypes, uint32_t seekValue, char* fileName, uint32_t num_loci){
   //  uint8_t genotypes = getGenotypes();
   uint8_t report_strand = 1;
   uint8_t unknown_annotation = 0;
-  printf("Phase 3\n\n");
+
 
   //Thise is the code 2 genotpye global python varible
   char code2genotype [46][8] = {
@@ -1055,69 +1059,62 @@ uint8_t* get_base_calls_generic(char** snps, int* ref_strands, uint8_t* genotype
     printf("The number of SNPs must match the number of loci in the GTC file");
     exit(12);
   }
+
+  //We need to allocate certain amount of memory. How much?
+  char* temp = (char*)malloc(3+num_loci*3);
   
-  char** ret = (char**)malloc(3+num_loci*sizeof(char*));
-  for(uint32_t i = 0; i < 10; ++i){
+  int counter = 0;
+  
+  for(uint32_t i = 0; i < num_loci; ++i){
+    
     char ab_genotype [8];
  
     char a_nucleotide = snps[i][1];
     char b_nucleotide = snps[i][strlen(snps[i])-2];
-    char result[100];
-    uint8_t index = 0;
     
     strcpy(ab_genotype, code2genotype[genotypes[i]] );
-    printf("A is %c\n", a_nucleotide);
-    printf("B is %c\n", b_nucleotide);
-    printf("ref strand is %i\n", ref_strands[i]);
-    printf("AB is %s\n", ab_genotype);
-    printf(".........\n\n");
+
+    //    printf("ab: %s\n", ab_genotype);
+    //    printf("a: %c\n", a_nucleotide);
+    //    printf("b: %c\n", b_nucleotide);
     
-    if(a_nucleotide == 'N' || b_nucleotide == 'N' ||  ref_strands[i] == 0 || strcmp(ab_genotype, "NC") == 1 || strcmp(ab_genotype, "NULL") == 1){
-      result[index] = '-';
-      index ++;
-      printf("Win\n");
-
+     
+    if(a_nucleotide == 'N' || b_nucleotide == 'N' ||  ref_strands[i] == 0 || ( ab_genotype[0] == 'N' && ab_genotype[1] == 'C' )  || strcmp(ab_genotype, "NULL") == 1){
+      temp[counter] = '-';
+      counter ++;
+      //printf("Fail\n");
     }else{
-
-      char report_strand_nucleotides [100];
+      // printf("No fail\n");
       uint8_t ab_len = strlen(code2genotype[genotypes[i]]);
-
-      ab_len = 10;
-      
-      for(uint8_t ii = 0; ii < ab_len; ++ ii){
-	char nucleotide_allele [2];
+      for(uint8_t ii = 0; ii < ab_len; ii++){
+	char nucleotide_allele;
 	
 	if(ab_genotype[ii] == 'A'){
-	  nucleotide_allele[0] = 'A';
-	}else{
-	   nucleotide_allele[0] = b_nucleotide;
-	   nucleotide_allele[1] = '\0';
-	}
-	char comp [2];
-	comp[0] = complement(nucleotide_allele[0]);
+          nucleotide_allele = a_nucleotide;
+        }else{
+           nucleotide_allele = b_nucleotide;
+        }
+	//printf("Nucleo allel: %c\n", nucleotide_allele);
+	//printf("stand %i\n", ref_strands[i]);
+	
+	char comp;
+	comp = complement(nucleotide_allele);
 
 	if(ref_strands[i] == 1){
-	  	  strcat(report_strand_nucleotides, nucleotide_allele);
-      	}else{
-	   strcat(report_strand_nucleotides, comp);
-	}
-	
-	//This requires heavy testing!
-	//ALso, complement is a function that can be found at BeadArrayUtility.
+	  //printf("Adding %c\n", nucleotide_allele);
+	  temp[counter] = nucleotide_allele;
+          counter++;
 
-	printf("%s - is da string\n", report_strand_nucleotides);
+        }else{
+	  //printf("Adding %c\n", comp);
+	  temp[counter] = comp;
+	  counter ++;
+        }	
       }
-     
-
-      
     }
-                
- 
   }
-  free(ret);
-  
-  uint8_t* a = (uint8_t *)malloc(6);
-  return a;
+  printf("counter is %i\n\n", counter);
+  return temp;
 }
 
 
