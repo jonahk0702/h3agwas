@@ -27,74 +27,6 @@ locusEntry* locus_entry;
 
 
 
- char* read_string_test(FILE* ptr){
-   uint32_t total_length = 0;
-
-   uint32_t num_bytes = 0;
-   uint32_t read; 
-   char readIn; 
-   uint32_t readAttempt;
-
-   int partial_length = read_byte(ptr);
-
-   if(partial_length < 0){
-     partial_length = 256 + partial_length;
-   }
-
-   int b = partial_length & 0x80;
-   while(b > 0){ 
-     total_length += (partial_length & 0x7F) << (7 * num_bytes); 
-     readAttempt = fread(&partial_length, sizeof(char), 1, ptr); 
-     if(readAttempt != 1){
-       printf("Error with reading String"); 
-       exit(-15); 
-     } 
-     b = partial_length & 0x80; 
-     num_bytes += 1; 
-   }
-
-
-   total_length += partial_length << (7 * num_bytes);
-
-
-   //   static char* resTry;
-
-   char* result = (char*)malloc(total_length+1);
-
-   if(total_length == 0){
-
-     
-     result = "";
-
-   }else{
-     //     readAttempt = fread(resTry, total_length, 1, ptr);
-        readAttempt = fread(result, total_length, 1, ptr);
-
-     //     readAttempt = fread(resReTry, total_length, 1, ptr);
-
-     if(readAttempt != 1){ 
-       printf("Error reading in string"); 
-       exit(-12); 
-     }
-
-     result[total_length] = '\0';
-     //     resTry[total_length] = '\0';
-     //resReTry[total_length] = '\0';
-
-     if(strlen(result) < total_length){
-     //     if(strlen(resTry) < total_length){
-       //  if(strlen(resReTry) < total_length){
-       printf("Unable to read the entire string");
-       exit(-12);
-     } 
-   } 
-
-   return result;
-   //       return resReTry;
-       //     return resTry;
-}
-
-
 void read_test(FILE* ptr, char** a){
    uint32_t total_length = 0;
    uint32_t num_bytes = 0;
@@ -136,10 +68,7 @@ int main(){
 
   uint8_t t =  __parse_file("/home/jonahk/H3Africa.bpm");
 
-
   printf("done the paserser\n");
- 
-
  
   return 0;
 }
@@ -424,10 +353,14 @@ uint8_t __parse_file(char* filename){
 
 
     printf("Pre runs!!\n\n");
-    char * plus_array =  get_base_calls_plus_strand (snps,ref_strands,genotypes, seekValue, gtcFiles[i], num_loci);
+    char ** plus_array =  get_base_calls_plus_strand (snps,ref_strands,genotypes, seekValue, gtcFiles[i], num_loci);
 
     printf("\nGot the dta\n");
-    free(plus_array);
+    printf("trying to free free.\n\n");
+    //    free(plus_array);
+    for(int ii = 0; ii < num_loci; ii++){
+      free(plus_array[ii]);
+    }
     printf("\nReally got the data\n");
     
   }
@@ -560,7 +493,7 @@ locusEntry* create_locus_entry(FILE* ptr){
   int version = read_int(ptr);
 
    if(version == 6 || version == 7 || version == 8){
-     //   ilmn_id = read_string_test(ptr);
+
      read_test(ptr, &ilmn_id);
       
     int count = 0;
@@ -577,12 +510,12 @@ locusEntry* create_locus_entry(FILE* ptr){
 
     source_strand = from_string(value);
 
-    name = read_string_test(ptr);
+    name = read_string(ptr);
 
  char* a;
  //For some reason, cannot use test
     for(int i = 0; i < 3; ++i){
-      a = read_string_test(ptr);
+      a = read_string(ptr);
     }
 
     int tempRead;
@@ -590,13 +523,13 @@ locusEntry* create_locus_entry(FILE* ptr){
 
 
     for(int i = 0; i < 2; ++i){
-      a = read_string_test(ptr);
+      a = read_string(ptr);
     }
 
 
-    snp = read_string_test(ptr);
+    snp = read_string(ptr);
 
-    chrom = read_string_test(ptr);
+    chrom = read_string(ptr);
 
 
     for(int i = 0; i < 2; ++ i){
@@ -608,7 +541,7 @@ locusEntry* create_locus_entry(FILE* ptr){
 
 
     for(int i = 0; i < 2; ++i){
-      a = read_string_test(ptr);
+      a = read_string(ptr);
     }
 
 
@@ -983,12 +916,12 @@ uint8_t* __get_generic_array(uint32_t seekValue, uint32_t offset, uint32_t count
 
 }
 
-char * get_base_calls_plus_strand(char** snps, int* ref_strands, uint8_t* genotypes, uint32_t seekValue, char* fileName, uint32_t num_loci){
+char** get_base_calls_plus_strand(char** snps, int* ref_strands, uint8_t* genotypes, uint32_t seekValue, char* fileName, uint32_t num_loci){
   printf("Phase 2!");
   return get_base_calls_generic(snps, ref_strands, genotypes, seekValue, fileName, num_loci);
 }
 
-char* get_base_calls_generic(char** snps, int* ref_strands, uint8_t* genotypes, uint32_t seekValue, char* fileName, uint32_t num_loci){
+char** get_base_calls_generic(char** snps, int* ref_strands, uint8_t* genotypes, uint32_t seekValue, char* fileName, uint32_t num_loci){
   //  uint8_t genotypes = getGenotypes();
   uint8_t report_strand = 1;
   uint8_t unknown_annotation = 0;
@@ -1061,16 +994,22 @@ char* get_base_calls_generic(char** snps, int* ref_strands, uint8_t* genotypes, 
   }
 
   //We need to allocate certain amount of memory. How much?
-  char* temp = (char*)malloc(3+num_loci*3);
+  char** temp = (char**)malloc(num_loci*sizeof(char*));
+ 
+
+  //  char** temp = (char**)malloc(3+10*sizeof(char*));
+
+   
+
   
-  int counter = 0;
-  
-  for(uint32_t i = 0; i < num_loci; ++i){
-    
+ for(uint32_t i = 0; i < num_loci; ++i){
+     
     char ab_genotype [8];
  
     char a_nucleotide = snps[i][1];
     char b_nucleotide = snps[i][strlen(snps[i])-2];
+    temp[i] = (char*)malloc(sizeof(char*));
+    
     
     strcpy(ab_genotype, code2genotype[genotypes[i]] );
 
@@ -1080,15 +1019,13 @@ char* get_base_calls_generic(char** snps, int* ref_strands, uint8_t* genotypes, 
     
      
     if(a_nucleotide == 'N' || b_nucleotide == 'N' ||  ref_strands[i] == 0 || ( ab_genotype[0] == 'N' && ab_genotype[1] == 'C' )  || strcmp(ab_genotype, "NULL") == 1){
-      temp[counter] = '-';
-      counter ++;
-      //printf("Fail\n");
+      strcpy(temp[i], "-");
     }else{
       // printf("No fail\n");
       uint8_t ab_len = strlen(code2genotype[genotypes[i]]);
       for(uint8_t ii = 0; ii < ab_len; ii++){
 	char nucleotide_allele;
-	
+	char holder [8];
 	if(ab_genotype[ii] == 'A'){
           nucleotide_allele = a_nucleotide;
         }else{
@@ -1101,19 +1038,17 @@ char* get_base_calls_generic(char** snps, int* ref_strands, uint8_t* genotypes, 
 	comp = complement(nucleotide_allele);
 
 	if(ref_strands[i] == 1){
-	  //printf("Adding %c\n", nucleotide_allele);
-	  temp[counter] = nucleotide_allele;
-          counter++;
-
+	  holder[ii] = nucleotide_allele;
         }else{
-	  //printf("Adding %c\n", comp);
-	  temp[counter] = comp;
-	  counter ++;
-        }	
+	  holder[ii] = comp;
+        }
+	if(ii + 1 == ab_len){
+	  holder[ab_len] = '\0';
+	  strcpy(temp[i], holder);
+	}
       }
     }
   }
-  printf("counter is %i\n\n", counter);
   return temp;
 }
 
