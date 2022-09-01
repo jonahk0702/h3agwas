@@ -22,6 +22,9 @@ uint32_t read_int(FILE* ptr); // I know, read_int returns a long...
 char* read_float(char* filename);
 uint8_t read_byte(FILE* ptr);
 char*  read_string(FILE* ptr);
+
+void read_test(FILE* ptr, char** a);
+
 char read_char(char* handle);
 int decode_code_point(char **s);
 uint8_t __parse_file(char* filename);
@@ -72,8 +75,8 @@ uint8_t* __get_generic_array(uint32_t seekValue, uint32_t offset, uint32_t count
   
 uint8_t* get_genotypes(char* fileName, uint32_t seekValue);
 
-char * get_base_calls_generic(char** snps, int* ref_strands, uint8_t* genotypes, uint32_t seekValue, char* fileName, uint32_t num_loci);
-char * get_base_calls_plus_strand(char** snps, int* ref_strands, uint8_t* genotypes, uint32_t seekValue, char* fileName, uint32_t num_loci);
+char ** get_base_calls_generic(char** snps, int* ref_strands, uint8_t* genotypes, uint32_t seekValue, char* fileName, uint32_t num_loci);
+char ** get_base_calls_plus_strand(char** snps, int* ref_strands, uint8_t* genotypes, uint32_t seekValue, char* fileName, uint32_t num_loci);
 
 
 char complement(char nucleotide);

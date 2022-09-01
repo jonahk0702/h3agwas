@@ -25,51 +25,11 @@ locusEntry* locus_entry;
 //atrributes. The sizes of these still needs to be calculated
 //Would rather store them all on the heap for some flexibility
 
-
-
-void read_test(FILE* ptr, char** a){
-   uint32_t total_length = 0;
-   uint32_t num_bytes = 0;
-   uint32_t read; 
-   char readIn; 
-   uint32_t readAttempt;
-   int partial_length = read_byte(ptr);
-   if(partial_length < 0){
-     partial_length = 256 + partial_length;
-   }
-   int b = partial_length & 0x80;
-   while(b > 0){ 
-     total_length += (partial_length & 0x7F) << (7 * num_bytes); 
-     readAttempt = fread(&partial_length, sizeof(char), 1, ptr); 
-     if(readAttempt != 1){
-       printf("Error with reading String"); 
-       exit(-15); 
-     } 
-     b = partial_length & 0x80; 
-     num_bytes += 1; 
-   }
-   total_length += partial_length << (7 * num_bytes);
-   *a = (char*)malloc(total_length + 1);
-    readAttempt = fread(*a, total_length, 1, ptr);
-    (*a)[total_length] = '\0';
- 
-   if(total_length == 0){
-
-     printf("Note there was an 0\n\n");
- 
-
-   }
-}
- 
-
-
 int main(){
   printf("Starting...\n");
 
   uint8_t t =  __parse_file("/home/jonahk/H3Africa.bpm");
 
-  printf("done the paserser\n");
- 
   return 0;
 }
 
@@ -236,9 +196,8 @@ uint8_t __parse_file(char* filename){
       normalization_lookups[i] =  key[normalization_ids[i]];
     }
 
-    printf("Moving to Reader\n");
+    printf("Moving to GTC Reader\n");
 
-    printf("............\n");
 
     uint16_t num_gtc_files = 1;
     uint16_t actual_use = 0;
@@ -300,11 +259,9 @@ uint8_t __parse_file(char* filename){
     }
 
     int number_toc_entries = read_int(ptr);
-    printf("Number toc is :%i\n\n", number_toc_entries);
 
 
-
-    //This shou;d be changed to a Hashtable later!
+    //This should be changed to a Hashtable later!
     //Now just not effiecent
     //Its a signed 16 bit number, thus 32 768?
     uint16_t id;
@@ -315,8 +272,7 @@ uint8_t __parse_file(char* filename){
     int keys[256];
     int values[256];
     
-
-    for(int i = 0; i < number_toc_entries; ++ i){
+    for(uint32_t i = 0; i < number_toc_entries; ++ i){
      
       readAttempt = fread(&id, 2, 1, ptr);
       readAttempt = fread(&offset, 4, 1, ptr);
@@ -325,14 +281,13 @@ uint8_t __parse_file(char* filename){
       values[i] = offset;      
       
     }
-    //(uint8_t version, char* fileName, uint32_t seekValue, uint32_t offset, uint32_t count);
+
 
     uint32_t seekValue = 0;
     if(version == 5){
       seekValue = 1016;
       for(int ii = 0; ii < 256; ii ++){
 	if(keys[ii] == 1016){
-	  printf("Found it at! %i\n\n", values[ii]);
 	  seekValue = values[ii];
 	}
 
@@ -351,28 +306,27 @@ uint8_t __parse_file(char* filename){
     }
     uint8_t* genotypes = get_genotypes(gtcFiles[i], seekValue);
 
-
-    printf("Pre runs!!\n\n");
     char ** plus_array =  get_base_calls_plus_strand (snps,ref_strands,genotypes, seekValue, gtcFiles[i], num_loci);
-
-    printf("\nGot the dta\n");
-    printf("trying to free free.\n\n");
-    //    free(plus_array);
-    for(int ii = 0; ii < num_loci; ii++){
-      free(plus_array[ii]);
+    printf("Plus Array read in\n\n");
+ 
+  
+    //Watch out, these are local varibles. Need to axtract datat before freeing
+    for(uint32_t j = 0; j < num_loci; j ++){
+      free(plus_array[j]);
     }
-    printf("\nReally got the data\n");
+    free(plus_array);
     
   }
     
      
   printf("I made it to the end.\n");
-  printf("freeing memeory...\n");
+
   
 
   for(uint32_t i = 0; i < num_loci; ++ i){
     free(snps[i]);
     free(chroms[i]);
+
   }
   free(all_norms_ids);
   free(manifest_name); 
@@ -387,7 +341,7 @@ uint8_t __parse_file(char* filename){
   free(ref_strands);
   free(source_strands);
   free(locus_entry);
-
+  printf("Memory has been freed\n\n\n");
   return 1;
 
 }
@@ -414,19 +368,16 @@ uint32_t read_int(FILE* ptr){
 
  char* read_string(FILE* ptr){
    uint32_t total_length = 0;
-
    uint32_t num_bytes = 0;
    uint32_t read; 
    char readIn; 
    uint32_t readAttempt;
-
-   int partial_length = read_byte(ptr);
-
+   uint8_t partial_length = read_byte(ptr);
    if(partial_length < 0){
      partial_length = 256 + partial_length;
    }
 
-   int b = partial_length & 0x80;
+   uint16_t b = partial_length & 0x80;
    while(b > 0){ 
      total_length += (partial_length & 0x7F) << (7 * num_bytes); 
      readAttempt = fread(&partial_length, sizeof(char), 1, ptr); 
@@ -438,40 +389,64 @@ uint32_t read_int(FILE* ptr){
      num_bytes += 1; 
    }
 
-
    total_length += partial_length << (7 * num_bytes); 
 
+   char* result = (char*)malloc(total_length+1);
 
-    char* result = (char*)malloc(total_length+1);
-
-   if(total_length == 0){ 
-     //   resTry = "";
-      result = "";
-
+   if(total_length == 0){
+     result = "";
    }else{
-
- 
-
-        readAttempt = fread(result, total_length, 1, ptr); 
-
+     readAttempt = fread(result, total_length, 1, ptr); 
      if(readAttempt != 1){ 
        printf("Error reading in string"); 
        exit(-12); 
      }
 
      result[total_length] = '\0';
-	  //resTry[total_length] = '\0';
-
      if(strlen(result) < total_length){
-     //if(strlen(resTry) < total_length){
        printf("Unable to read the entire string");
        exit(-12);
      } 
    } 
 
-     return result;
-     // return resTry;
+   return result;
 }
+
+
+void read_test(FILE* ptr, char** a){
+   uint32_t total_length = 0;
+   uint32_t num_bytes = 0;
+   uint32_t read; 
+   char readIn; 
+   uint32_t readAttempt;
+   int partial_length = read_byte(ptr);
+   if(partial_length < 0){
+     partial_length = 256 + partial_length;
+   }
+   int b = partial_length & 0x80;
+   while(b > 0){ 
+     total_length += (partial_length & 0x7F) << (7 * num_bytes); 
+     readAttempt = fread(&partial_length, sizeof(char), 1, ptr); 
+     if(readAttempt != 1){
+       printf("Error with reading String"); 
+       exit(-15); 
+     } 
+     b = partial_length & 0x80; 
+     num_bytes += 1; 
+   }
+   total_length += partial_length << (7 * num_bytes);
+   *a = (char*)malloc(total_length + 1);
+    readAttempt = fread(*a, total_length, 1, ptr);
+    (*a)[total_length] = '\0';
+ 
+   if(total_length == 0){
+
+     printf("Note there was an 0\n\n");
+ 
+
+   }
+}
+ 
 
 //LocusEntry object functions
 
@@ -582,9 +557,6 @@ locusEntry* create_locus_entry(FILE* ptr){
     ref_strand = ref_from_string(read_string(ptr)[0]);
   }
 
-  // printf("pre ilmn \n");
-  // free(ilmn_id);
-  // printf("post ilmn \n");
 
   locus_entry->ilmn_id = ilmn_id;
   locus_entry->name = name;
@@ -813,6 +785,7 @@ uint8_t __get_generic(char* fileName, uint32_t seekValue){
 
 
 int get_num_intensity_only(char* fileName, uint32_t seekValue){
+  //Runs if GTC version is 3, thus I have nver run it, and no idea if it works
   FILE* ptr;
   ptr = fopen(fileName, "rb");
   if(ptr == NULL){
@@ -917,7 +890,6 @@ uint8_t* __get_generic_array(uint32_t seekValue, uint32_t offset, uint32_t count
 }
 
 char** get_base_calls_plus_strand(char** snps, int* ref_strands, uint8_t* genotypes, uint32_t seekValue, char* fileName, uint32_t num_loci){
-  printf("Phase 2!");
   return get_base_calls_generic(snps, ref_strands, genotypes, seekValue, fileName, num_loci);
 }
 
